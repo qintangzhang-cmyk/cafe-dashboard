@@ -132,7 +132,7 @@ tbody td{padding:8px 12px;vertical-align:middle}
     <div class="sub">HK096510 · 尖沙咀彌敦道 26 号 · 数据来源：Eats365 | 2025-11-13 至 2026-04-15</div>
   </div>
   <div class="hdr-right">
-    <span class="updated">更新于 2026-04-16 12:25</span>
+    <span class="updated">更新于 2026-04-16 12:41</span>
     <span class="badge">AUTO REPORT</span>
   </div>
 </div>
@@ -150,6 +150,7 @@ tbody td{padding:8px 12px;vertical-align:middle}
   <a href="#discount">折扣分析</a>
   <a href="#diag">运营诊断</a>
   <a href="#traffic">到店人流</a>
+  <a href="#funnel">转化漏斗</a>
 </nav>
 
 <div class="filter-bar">
@@ -193,6 +194,13 @@ tbody td{padding:8px 12px;vertical-align:middle}
       <div class="okr-prog-track"><div class="okr-prog-fill" id="okr_pl_fill" style="width:0%"></div></div>
       <div class="okr-note" id="okr_pl_note">租金 HK$943,910 + 运营 HK$151,950</div>
     </div>
+    <div class="okr-card">
+      <div class="okr-label">O3 &nbsp;LB用户到访渗透率</div>
+      <div class="okr-val" id="okr_pen_val">—</div>
+      <div class="okr-target">LB扫码 ÷ 总人流 &nbsp;·&nbsp; 目标待定</div>
+      <div class="okr-prog-track"><div class="okr-prog-fill" id="okr_pen_fill" style="width:0%;background:var(--blue)"></div></div>
+      <div class="okr-note" id="okr_pen_note">2026年累计统计</div>
+    </div>
   </div>
   <div class="chart-box">
     <div class="ct">周度收支趋势（O4·KR3）</div>
@@ -221,9 +229,9 @@ tbody td{padding:8px 12px;vertical-align:middle}
       <div class="chg dn">▼ 23.6% vs 上周</div>
     </div>
     <div class="kpi" style="--kpi-color:var(--teal)">
-      <div class="lbl">近 30 天日均</div>
-      <div class="val">HK$ 10,189</div>
-      <div class="hint">▼ 73.8% vs 上月</div>
+      <div class="lbl">本月日均</div>
+      <div class="val">HK$ 8,418</div>
+      <div class="hint">2026-04 · 10 天 &nbsp;▼ 18.9% vs 上月日均</div>
     </div>
     <div class="kpi" style="--kpi-color:var(--purple)">
       <div class="lbl">累计交易笔数</div>
@@ -236,7 +244,7 @@ tbody td{padding:8px 12px;vertical-align:middle}
       <div class="hint">近7天 HK$ 62</div>
     </div>
     <div class="kpi" style="--kpi-color:var(--orange)">
-      <div class="lbl">单日最高</div>
+      <div class="lbl">近 30 天最高</div>
       <div class="val">HK$ 17,687</div>
       <div class="hint">2026-03-28</div>
     </div>
@@ -507,6 +515,41 @@ tbody td{padding:8px 12px;vertical-align:middle}
       <div class="ct">三门进入占比</div>
       <div class="cs">A 闸（正门）· B 闸 · 侧门</div>
       <div id="chart_ft_doors" style="height:220px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 转化漏斗 -->
+<div class="section" id="funnel">
+  <div class="section-hdr"><h2>到访转化漏斗</h2><div class="divider"></div><span style="font-size:10px;color:var(--sub2);white-space:nowrap">人流计数 + 门禁扫码 + POS 交易，随时间筛选更新</span></div>
+  <div class="grid c2">
+    <div class="chart-box">
+      <div class="ct">转化漏斗（筛选期合计）</div>
+      <div class="cs">到店人流 → LB扫码（存量用户）→ 消费笔数 &nbsp;·&nbsp; <span class="filter-range"></span></div>
+      <div id="chart_funnel" style="height:280px"></div>
+    </div>
+    <div class="chart-box">
+      <div class="ct">月度转化量趋势</div>
+      <div class="cs">各月人流 / LB扫码（左轴）& 消费笔数（右轴）</div>
+      <div id="chart_funnel_trend" style="height:280px"></div>
+    </div>
+  </div>
+  <div class="grid c2" style="margin-top:14px">
+    <div class="chart-box">
+      <div class="ct">月度转化率趋势</div>
+      <div class="cs">LB扫码率 = 扫码/人流 &nbsp;·&nbsp; 消费率 = 消费笔数/人流（非唯一人次）</div>
+      <div id="chart_funnel_rate" style="height:220px"></div>
+    </div>
+    <div class="chart-box" style="display:flex;flex-direction:column;justify-content:center">
+      <div class="ct" style="margin-bottom:10px">数据覆盖说明</div>
+      <div style="font-size:11.5px;color:var(--sub);line-height:2.1">
+        ✅ &nbsp;<b>到店人流</b>：Lark 人流计数器（A/B/C 闸合计）<br>
+        ✅ &nbsp;<b>LB扫码</b>：门禁系统存量用户（每日去重）<br>
+        ✅ &nbsp;<b>消费笔数</b>：Eats365 POS 交易次数<br>
+        ❌ &nbsp;<b>归因开户</b>：Metabase 未接入本地流程；政策暂停至5月<br>
+        ❌ &nbsp;<b>首次交易 / 新客</b>：POS 无个人 ID，无法区分新老客<br>
+        ❌ &nbsp;<b>复访率</b>：需会员系统支持，当前不可用
+      </div>
     </div>
   </div>
 </div>
@@ -786,10 +829,12 @@ function renderAll(){
     document.getElementById('okr_fb_fill').style.background=fb_pct>=100?'var(--green)':'var(--gold)';
     document.getElementById('okr_fb_note').textContent=fb_pct.toFixed(1)+'% 达成 · 2026年共 '+mk26.length+' 个月';
 
-    // O3-KR1: 日均人流 (2026 only)
-    let ft_tot26=0,ft_days26=0;
+    // O3-KR1: 日均人流 (2026 only) + 渗透率
+    let ft_tot26=0,ft_ac26=0,ft_days26=0;
     if(D.ft&&D.ft.dates){
-      D.ft.dates.forEach((d,i)=>{if(d>='2026-01-01'){ft_tot26+=D.ft.total[i];ft_days26++;}  });
+      D.ft.dates.forEach((d,i)=>{
+        if(d>='2026-01-01'){ft_tot26+=D.ft.total[i];ft_ac26+=D.ft.ac[i];ft_days26++;}
+      });
     }
     const ft_avg26=ft_days26?Math.round(ft_tot26/ft_days26):0;
     const ft_pct=Math.min(ft_avg26/TARGET_DAILY_FT*100,150);
@@ -808,6 +853,14 @@ function renderAll(){
     document.getElementById('okr_pl_fill').style.width=Math.min(pl_ratio,100).toFixed(1)+'%';
     document.getElementById('okr_pl_fill').style.background=pl_ratio>=100?'var(--green)':'var(--red)';
     document.getElementById('okr_pl_note').textContent='周均 HK$'+Math.round(last4Avg).toLocaleString()+' / 成本基线 HK$'+Math.round(WEEKLY_COST).toLocaleString();
+
+    // O3 LB用户到访渗透率
+    const pen_val=ft_tot26?(ft_ac26/ft_tot26*100):0;
+    document.getElementById('okr_pen_val').textContent=pen_val.toFixed(1)+'%';
+    document.getElementById('okr_pen_val').className='okr-val '+(pen_val>0?'okr-miss':'okr-na');
+    // Progress bar: scale 0-10% range → 0-100% fill
+    document.getElementById('okr_pen_fill').style.width=Math.min(pen_val/10*100,100).toFixed(1)+'%';
+    if(ft_tot26)document.getElementById('okr_pen_note').textContent='2026年: 扫码 '+ft_ac26.toLocaleString()+' 次 / 人流 '+ft_tot26.toLocaleString();
 
     // Weekly P&L chart (2026全年周)
     const costLine=Array(wk_keys.length).fill(WEEKLY_COST);
@@ -884,6 +937,79 @@ function renderAll(){
       text:fd.month_disc.map(v=>'HK$'+Math.round(v).toLocaleString()),
       textposition:'outside',textfont:{size:10}}
   ],mk({yaxis:{title:'折扣金额 HK$'},xaxis:{tickangle:-30},margin:{t:20,r:10,b:50,l:70}}),cfg);
+
+  // ── 转化漏斗 ──────────────────────────────────────────────────────────────────
+  (function(){
+    if(!D.ft||!D.ft.dates||!D.ft.dates.length)return;
+
+    // Date-indexed ft lookup
+    const ftm={};
+    D.ft.dates.forEach((d,i)=>{ftm[d]={total:D.ft.total[i],ac:D.ft.ac[i]};});
+
+    // Filtered period: intersection of POS dates and ft dates
+    const common=fd.dates.filter(d=>ftm[d]);
+    const tot_ft =common.reduce((s,d)=>s+ftm[d].total,0);
+    const tot_ac =common.reduce((s,d)=>s+ftm[d].ac,0);
+    const tot_txn=common.reduce((s,d)=>{const i=fd.dates.indexOf(d);return s+(i>=0?fd.txn[i]:0);},0);
+    const r_ac  =tot_ft?(tot_ac /tot_ft*100).toFixed(1):'—';
+    const r_txn =tot_ft?(tot_txn/tot_ft*100).toFixed(1):'—';
+
+    // Funnel (horizontal bars)
+    Plotly.react('chart_funnel',[
+      {type:'bar',orientation:'h',
+        y:['消费笔数','LB扫码（存量用户）','到店人流'],
+        x:[tot_txn,tot_ac,tot_ft],
+        marker:{color:['#2a7a52','#6b48a8','#3a72b5']},
+        text:[r_txn+'% of 人流',r_ac+'% of 人流',tot_ft.toLocaleString()+' 人次'],
+        textposition:'outside',textfont:{size:10},
+        width:[0.45,0.45,0.45],
+      }
+    ],mk({
+      xaxis:{title:'人次 / 笔数',gridcolor:GRID},
+      margin:{t:8,r:100,b:40,l:175},
+    }),cfg);
+
+    // Monthly aggregation (all time, not filtered)
+    const mft={},mtxn={};
+    D.ft.dates.forEach((d,i)=>{
+      const m=d.substring(0,7);
+      if(!mft[m])mft[m]={ft:0,ac:0};
+      mft[m].ft+=D.ft.total[i];mft[m].ac+=D.ft.ac[i];
+    });
+    D.dates.forEach((d,i)=>{
+      const m=d.substring(0,7);
+      if(!mtxn[m])mtxn[m]=0;
+      mtxn[m]+=D.transactions[i];
+    });
+    const mo_k=[...new Set([...Object.keys(mft),...Object.keys(mtxn)])].sort().filter(m=>mft[m]&&mft[m].ft>0);
+    const mo_ft =mo_k.map(m=>mft[m]?mft[m].ft:0);
+    const mo_ac =mo_k.map(m=>mft[m]?mft[m].ac:0);
+    const mo_txn=mo_k.map(m=>mtxn[m]||0);
+
+    Plotly.react('chart_funnel_trend',[
+      {x:mo_k,y:mo_ft, type:'bar',name:'到店人流',marker:{color:'#3a72b5'}},
+      {x:mo_k,y:mo_ac, type:'bar',name:'LB扫码',  marker:{color:'#6b48a8'}},
+      {x:mo_k,y:mo_txn,type:'scatter',mode:'lines+markers',name:'消费笔数',
+        line:{color:'#2a7a52',width:2},marker:{size:5},yaxis:'y2'},
+    ],mk({
+      barmode:'group',
+      yaxis:{title:'人次',gridcolor:GRID},
+      yaxis2:{title:'消费笔数',overlaying:'y',side:'right',gridcolor:'transparent'},
+      margin:{t:8,r:60,b:50,l:60},xaxis:{tickangle:-30},
+    }),cfg);
+
+    const mo_rate_ac =mo_k.map((_,i)=>mo_ft[i]?+(mo_ac[i] /mo_ft[i]*100).toFixed(2):0);
+    const mo_rate_txn=mo_k.map((_,i)=>mo_ft[i]?+(mo_txn[i]/mo_ft[i]*100).toFixed(2):0);
+    Plotly.react('chart_funnel_rate',[
+      {x:mo_k,y:mo_rate_ac, type:'scatter',mode:'lines+markers',name:'LB扫码率 %',
+        line:{color:'#6b48a8',width:2},marker:{size:5}},
+      {x:mo_k,y:mo_rate_txn,type:'scatter',mode:'lines+markers',name:'消费率 %（笔/流）',
+        line:{color:'#2a7a52',width:2,dash:'dot'},marker:{size:5}},
+    ],mk({
+      yaxis:{title:'转化率 %',gridcolor:GRID},
+      margin:{t:8,r:12,b:50,l:55},xaxis:{tickangle:-30},
+    }),cfg);
+  })();
 }
 
 renderAll();
