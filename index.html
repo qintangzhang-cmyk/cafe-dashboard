@@ -132,7 +132,7 @@ tbody td{padding:8px 12px;vertical-align:middle}
     <div class="sub">HK096510 · 尖沙咀彌敦道 26 号 · 数据来源：Eats365 | 2025-11-13 至 2026-04-15</div>
   </div>
   <div class="hdr-right">
-    <span class="updated">更新于 2026-04-16 12:09</span>
+    <span class="updated">更新于 2026-04-16 12:25</span>
     <span class="badge">AUTO REPORT</span>
   </div>
 </div>
@@ -163,7 +163,7 @@ tbody td{padding:8px 12px;vertical-align:middle}
 
 <!-- OKR 看板 -->
 <div class="section" id="okr">
-  <div class="section-hdr"><h2>OKR 关键进展</h2><div class="divider"></div></div>
+  <div class="section-hdr"><h2>OKR 关键进展</h2><span class="tag tag-blue" style="margin-left:4px;flex-shrink:0">2026 年度</span><div class="divider"></div><span style="font-size:10px;color:var(--sub2);white-space:nowrap">数据范围固定为 2026 年至今，独立于时间筛选</span></div>
   <div class="okr-grid">
     <div class="okr-card">
       <div class="okr-label">O2·KR1 &nbsp;月新增LB开户</div>
@@ -748,37 +748,58 @@ function renderAll(){
       text:fd.month_txn.map(v=>Math.round(v).toLocaleString()+'笔'),textposition:'outside',textfont:{size:10}}
   ],mk({yaxis:{title:'交易笔数'},margin:{t:20,r:10,b:50,l:60},xaxis:{tickangle:-30}}),cfg);
 
-  // ── OKR 指标渲染 ──────────────────────────────────────────────────────────────
+  // ── OKR 指标渲染（固定使用 2026 年数据）────────────────────────────────────────
   (function(){
-    // 周度汇总
-    const wo2={};
-    fd.dates.forEach((d,i)=>{
-      const wk=dateToWeek(d);
-      if(!wo2[wk])wo2[wk]={sales:0,days:0};
-      wo2[wk].sales+=fd.sales[i];wo2[wk].days+=1;
+    // 2026 原始数据（不受时间筛选影响）
+    const idx26=[];
+    D.dates.forEach((d,i)=>{if(d>='2026-01-01')idx26.push(i);});
+    const sl26=arr=>idx26.map(i=>arr[i]);
+    const dates26=sl26(D.dates);
+    const sales26=sl26(D.sales);
+
+    // 月度汇总 (2026)
+    const mo26={};
+    dates26.forEach((d,i)=>{
+      const m=d.substring(0,7);
+      if(!mo26[m])mo26[m]={sales:0,days:0};
+      mo26[m].sales+=sales26[i];mo26[m].days+=1;
     });
-    const wk_keys=Object.keys(wo2).sort();
-    const wk_sales=wk_keys.map(w=>wo2[w].sales);
+    const mk26=Object.keys(mo26).sort();
+    const ms26=mk26.map(m=>mo26[m].sales);
+
+    // 周度汇总 (2026)
+    const wo26={};
+    dates26.forEach((d,i)=>{
+      const wk=dateToWeek(d);
+      if(!wo26[wk])wo26[wk]={sales:0};
+      wo26[wk].sales+=sales26[i];
+    });
+    const wk_keys=Object.keys(wo26).sort();
+    const wk_sales=wk_keys.map(w=>wo26[w].sales);
 
     // O2-KR3: F&B月均营业额 vs 目标HK$158,750
-    const fb_mth_avg=fd.month_keys.length?fd.month_sales.reduce((s,v)=>s+v,0)/fd.month_keys.length:0;
+    const fb_mth_avg=mk26.length?ms26.reduce((s,v)=>s+v,0)/mk26.length:0;
     const fb_pct=Math.min(fb_mth_avg/FB_TARGET_MTH*100,150);
     document.getElementById('okr_fb_val').textContent='HK$ '+Math.round(fb_mth_avg).toLocaleString();
     document.getElementById('okr_fb_val').className='okr-val '+(fb_pct>=100?'okr-hit':'okr-miss');
     document.getElementById('okr_fb_fill').style.width=Math.min(fb_pct,100).toFixed(1)+'%';
     document.getElementById('okr_fb_fill').style.background=fb_pct>=100?'var(--green)':'var(--gold)';
-    document.getElementById('okr_fb_note').textContent=fb_pct.toFixed(1)+'% 达成 · 月均 '+fd.month_keys.length+' 个月';
+    document.getElementById('okr_fb_note').textContent=fb_pct.toFixed(1)+'% 达成 · 2026年共 '+mk26.length+' 个月';
 
-    // O3-KR1: 日均人流 (使用全期静态数据)
-    const ft_avg=D.ft?D.ft.kpi_daily_avg:0;
-    const ft_pct=Math.min(ft_avg/TARGET_DAILY_FT*100,150);
-    document.getElementById('okr_ft_val').textContent=ft_avg?ft_avg.toLocaleString()+' 人':'无数据';
-    document.getElementById('okr_ft_val').className='okr-val '+(ft_avg?ft_pct>=100?'okr-hit':'okr-miss':'okr-na');
+    // O3-KR1: 日均人流 (2026 only)
+    let ft_tot26=0,ft_days26=0;
+    if(D.ft&&D.ft.dates){
+      D.ft.dates.forEach((d,i)=>{if(d>='2026-01-01'){ft_tot26+=D.ft.total[i];ft_days26++;}  });
+    }
+    const ft_avg26=ft_days26?Math.round(ft_tot26/ft_days26):0;
+    const ft_pct=Math.min(ft_avg26/TARGET_DAILY_FT*100,150);
+    document.getElementById('okr_ft_val').textContent=ft_avg26?ft_avg26.toLocaleString()+' 人':'无数据';
+    document.getElementById('okr_ft_val').className='okr-val '+(ft_avg26?(ft_pct>=100?'okr-hit':'okr-miss'):'okr-na');
     document.getElementById('okr_ft_fill').style.width=Math.min(ft_pct,100).toFixed(1)+'%';
     document.getElementById('okr_ft_fill').style.background=ft_pct>=100?'var(--green)':'var(--blue)';
-    if(D.ft)document.getElementById('okr_ft_note').textContent=ft_pct.toFixed(1)+'% 达成 · 全期日均';
+    if(ft_avg26)document.getElementById('okr_ft_note').textContent=ft_pct.toFixed(1)+'% 达成 · 2026年 '+ft_days26+' 天';
 
-    // O4-KR3: 近4周收支比
+    // O4-KR3: 近4周收支比（最近4个2026周）
     const last4=wk_sales.slice(-4);
     const last4Avg=last4.length?last4.reduce((s,v)=>s+v,0)/last4.length:0;
     const pl_ratio=last4Avg/WEEKLY_COST*100;
@@ -786,9 +807,9 @@ function renderAll(){
     document.getElementById('okr_pl_val').className='okr-val '+(pl_ratio>=100?'okr-hit':'okr-miss');
     document.getElementById('okr_pl_fill').style.width=Math.min(pl_ratio,100).toFixed(1)+'%';
     document.getElementById('okr_pl_fill').style.background=pl_ratio>=100?'var(--green)':'var(--red)';
-    document.getElementById('okr_pl_note').textContent='周均 HK$'+Math.round(last4Avg).toLocaleString()+' / 成本 HK$'+Math.round(WEEKLY_COST).toLocaleString();
+    document.getElementById('okr_pl_note').textContent='周均 HK$'+Math.round(last4Avg).toLocaleString()+' / 成本基线 HK$'+Math.round(WEEKLY_COST).toLocaleString();
 
-    // Weekly P&L chart
+    // Weekly P&L chart (2026全年周)
     const costLine=Array(wk_keys.length).fill(WEEKLY_COST);
     Plotly.react('chart_weekly_pl',[
       {x:wk_keys,y:wk_sales,type:'bar',name:'周营业额',
@@ -800,7 +821,6 @@ function renderAll(){
     ],mk({
       yaxis:{title:'HK$',gridcolor:GRID},
       margin:{t:8,r:12,b:50,l:70},xaxis:{tickangle:-30,tickfont:{size:9}},
-      barmode:'group',
     }),cfg);
   })();
 
