@@ -80,6 +80,17 @@ tbody td{padding:8px 12px;vertical-align:middle}
 .bar-fill{height:100%;border-radius:3px}
 .bar-val{width:60px;font-size:11px;text-align:right;flex-shrink:0}
 
+/* OKR CARDS */
+.okr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:16px}
+.okr-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.okr-label{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:600}
+.okr-val{font-size:24px;font-weight:700;color:var(--text);line-height:1;margin-bottom:3px}
+.okr-target{font-size:10px;color:var(--sub2);margin-bottom:8px}
+.okr-prog-track{height:5px;background:var(--surface3);border-radius:3px;overflow:hidden;margin-bottom:5px}
+.okr-prog-fill{height:100%;border-radius:3px;transition:width .3s ease}
+.okr-note{font-size:10.5px;color:var(--sub)}
+.okr-hit{color:var(--green)} .okr-miss{color:var(--red)} .okr-na{color:var(--sub2)}
+
 /* TAG */
 .tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px}
 .tag-gold{background:rgba(200,169,110,.15);color:var(--gold)}
@@ -121,17 +132,17 @@ tbody td{padding:8px 12px;vertical-align:middle}
     <div class="sub">HK096510 · 尖沙咀彌敦道 26 号 · 数据来源：Eats365 | 2025-11-13 至 2026-04-15</div>
   </div>
   <div class="hdr-right">
-    <span class="updated">更新于 2026-04-16 10:42</span>
+    <span class="updated">更新于 2026-04-16 12:09</span>
     <span class="badge">AUTO REPORT</span>
   </div>
 </div>
 
 <nav class="nav">
-  <a href="#kpi" class="active">核心指标</a>
+  <a href="#okr" class="active">OKR看板</a>
+  <a href="#kpi">核心指标</a>
   <a href="#trend">营业趋势</a>
   <a href="#weekday">星期分析</a>
   <a href="#monthly">月度对比</a>
-  <a href="#avgstats">日均分析</a>
   <a href="#category">品类分析</a>
   <a href="#bw">Black vs White</a>
   <a href="#delivery">外卖平台</a>
@@ -145,10 +156,50 @@ tbody td{padding:8px 12px;vertical-align:middle}
   <span class="fl">时间筛选</span>
   <label>从</label><select id="sel_from"></select>
   <label>到</label><select id="sel_to"></select>
-  <span class="fhint">· 所有模块随筛选自动更新</span>
+  <span class="fhint">· 按周筛选 · 所有模块随筛选自动更新（OKR人流除外）</span>
 </div>
 
 <div class="container">
+
+<!-- OKR 看板 -->
+<div class="section" id="okr">
+  <div class="section-hdr"><h2>OKR 关键进展</h2><div class="divider"></div></div>
+  <div class="okr-grid">
+    <div class="okr-card">
+      <div class="okr-label">O2·KR1 &nbsp;月新增LB开户</div>
+      <div class="okr-val okr-na" id="okr_acq_val">—</div>
+      <div class="okr-target">目标 900 户/月 &nbsp;·&nbsp; <span class="filter-range"></span></div>
+      <div class="okr-prog-track"><div class="okr-prog-fill" id="okr_acq_fill" style="width:0%;background:var(--sub2)"></div></div>
+      <div class="okr-note" id="okr_acq_note">政策暂停归因，5月预计恢复</div>
+    </div>
+    <div class="okr-card">
+      <div class="okr-label">O2·KR3 &nbsp;F&amp;B月均收入</div>
+      <div class="okr-val" id="okr_fb_val">—</div>
+      <div class="okr-target">目标 HK$ 158,750/月（年度30%）</div>
+      <div class="okr-prog-track"><div class="okr-prog-fill" id="okr_fb_fill" style="width:0%"></div></div>
+      <div class="okr-note" id="okr_fb_note"></div>
+    </div>
+    <div class="okr-card">
+      <div class="okr-label">O3·KR1 &nbsp;日均到店人流</div>
+      <div class="okr-val" id="okr_ft_val">—</div>
+      <div class="okr-target">目标 500 人/天</div>
+      <div class="okr-prog-track"><div class="okr-prog-fill" id="okr_ft_fill" style="width:0%"></div></div>
+      <div class="okr-note" id="okr_ft_note">全期统计</div>
+    </div>
+    <div class="okr-card">
+      <div class="okr-label">O4·KR3 &nbsp;近4周收支比</div>
+      <div class="okr-val" id="okr_pl_val">—</div>
+      <div class="okr-target">目标 ≥ 100%（固定成本覆盖）</div>
+      <div class="okr-prog-track"><div class="okr-prog-fill" id="okr_pl_fill" style="width:0%"></div></div>
+      <div class="okr-note" id="okr_pl_note">租金 HK$943,910 + 运营 HK$151,950</div>
+    </div>
+  </div>
+  <div class="chart-box">
+    <div class="ct">周度收支趋势（O4·KR3）</div>
+    <div class="cs">每周营业额 vs 固定成本基线（租金＋运营）· <span class="filter-range"></span></div>
+    <div id="chart_weekly_pl" style="height:240px"></div>
+  </div>
+</div>
 
 <!-- ① 核心指标 -->
 <div class="section" id="kpi">
@@ -237,57 +288,6 @@ tbody td{padding:8px 12px;vertical-align:middle}
       <div class="ct">月度交易笔数</div>
       <div class="cs">客流量变化</div>
       <div id="chart_monthly_txn" style="height:280px"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ④b 日均分析 -->
-<div class="section" id="avgstats">
-  <div class="section-hdr"><h2>日均分析（月均 & 周均）</h2><div class="divider"></div></div>
-  <div class="grid c2">
-    <div class="chart-box">
-      <div class="ct">月均：每日平均营业额 / 订单数 / 杯数</div>
-      <div class="cs">各月实际营业天数下的日均值 · <span class="filter-range"></span></div>
-      <div style="overflow-x:auto;margin-top:8px">
-        <table id="tbl_month_avg" style="font-size:11.5px;width:100%;border-collapse:collapse">
-          <thead><tr>
-            <th style="padding:7px 10px;background:var(--surface2);color:var(--sub);text-align:left;font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px">月份</th>
-            <th style="padding:7px 10px;background:var(--surface2);color:var(--sub);text-align:center;font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px">营业天数</th>
-            <th style="padding:7px 10px;background:var(--surface2);color:var(--sub);text-align:right;font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px">日均营业额</th>
-            <th style="padding:7px 10px;background:var(--surface2);color:var(--sub);text-align:right;font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px">日均订单数</th>
-            <th style="padding:7px 10px;background:var(--surface2);color:var(--sub);text-align:right;font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px">日均杯数</th>
-          </tr></thead>
-          <tbody id="tbl_month_avg_body"></tbody>
-        </table>
-      </div>
-    </div>
-    <div class="chart-box">
-      <div class="ct">周均：每日平均营业额 / 订单数 / 杯数</div>
-      <div class="cs">各周实际营业天数下的日均值（最近 16 周）· <span class="filter-range"></span></div>
-      <div style="overflow-x:auto;margin-top:8px">
-        <table id="tbl_week_avg" style="font-size:11.5px;width:100%;border-collapse:collapse">
-          <thead><tr>
-            <th style="padding:7px 10px;background:var(--surface2);color:var(--sub);text-align:left;font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px">周次</th>
-            <th style="padding:7px 10px;background:var(--surface2);color:var(--sub);text-align:center;font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px">营业天数</th>
-            <th style="padding:7px 10px;background:var(--surface2);color:var(--sub);text-align:right;font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px">日均营业额</th>
-            <th style="padding:7px 10px;background:var(--surface2);color:var(--sub);text-align:right;font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px">日均订单数</th>
-            <th style="padding:7px 10px;background:var(--surface2);color:var(--sub);text-align:right;font-weight:500;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px">日均杯数</th>
-          </tr></thead>
-          <tbody id="tbl_week_avg_body"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  <div class="grid c2" style="margin-top:14px">
-    <div class="chart-box">
-      <div class="ct">月均营业额趋势（日均）</div>
-      <div class="cs">各月日均营业额走势</div>
-      <div id="chart_month_avg_sales" style="height:220px"></div>
-    </div>
-    <div class="chart-box">
-      <div class="ct">月均订单数 & 杯数趋势（日均）</div>
-      <div class="cs">各月日均订单数与杯数</div>
-      <div id="chart_month_avg_txn_cups" style="height:220px"></div>
     </div>
   </div>
 </div>
@@ -534,26 +534,40 @@ function mk(x){
 }
 function sum(a){return a.reduce((s,v)=>s+v,0);}
 
+// ── Budget / OKR constants ────────────────────────────────────────────────────
+const RENT_MONTHLY  = 943910;
+const OPS_MONTHLY   = 151950;
+const WEEKLY_COST   = (RENT_MONTHLY + OPS_MONTHLY) * 12 / 52; // ~251,860
+const FB_TARGET_MTH = 158750;  // 6.35M annual * 30% / 12
+const TARGET_DAILY_FT = 500;
+
 // ── Filter state ─────────────────────────────────────────────────────────────
-const ALL_MONTHS=[...new Set(D.dates.map(d=>d.substring(0,7)))].sort();
-const _curYear=new Date().getFullYear().toString();
-const _thisYearMonths=ALL_MONTHS.filter(m=>m.startsWith(_curYear));
-let fFrom=_thisYearMonths.length>0?_thisYearMonths[0]:ALL_MONTHS[0];
-let fTo=ALL_MONTHS[ALL_MONTHS.length-1];
+function dateToWeek(dStr){
+  const dt=new Date(dStr+'T12:00:00');
+  const day=dt.getDay()||7;
+  dt.setDate(dt.getDate()+4-day);
+  const yr=dt.getFullYear();
+  const yearStart=new Date(yr,0,1);
+  const wn=Math.ceil((((dt-yearStart)/86400000)+1)/7);
+  return yr+'-W'+String(wn).padStart(2,'0');
+}
+const ALL_WEEKS=[...new Set(D.dates.map(dateToWeek))].sort();
+let fFromW=ALL_WEEKS.slice(-13)[0]||ALL_WEEKS[0];
+let fToW=ALL_WEEKS[ALL_WEEKS.length-1];
 
 const selFrom=document.getElementById('sel_from');
 const selTo  =document.getElementById('sel_to');
-ALL_MONTHS.forEach(m=>{
-  selFrom.innerHTML+=`<option value="${m}" ${m===fFrom?'selected':''}>${m}</option>`;
-  selTo.innerHTML  +=`<option value="${m}" ${m===fTo  ?'selected':''}>${m}</option>`;
+ALL_WEEKS.forEach(w=>{
+  selFrom.innerHTML+=`<option value="${w}" ${w===fFromW?'selected':''}>${w}</option>`;
+  selTo.innerHTML  +=`<option value="${w}" ${w===fToW  ?'selected':''}>${w}</option>`;
 });
-selFrom.addEventListener('change',()=>{fFrom=selFrom.value;renderAll();});
-selTo  .addEventListener('change',()=>{fTo  =selTo.value;  renderAll();});
+selFrom.addEventListener('change',()=>{fFromW=selFrom.value;renderAll();});
+selTo  .addEventListener('change',()=>{fToW  =selTo.value;  renderAll();});
 
 // ── Compute filtered data ─────────────────────────────────────────────────────
 function getFiltered(){
   const idx=[];
-  D.dates.forEach((d,i)=>{const m=d.substring(0,7);if(m>=fFrom&&m<=fTo)idx.push(i);});
+  D.dates.forEach((d,i)=>{const w=dateToWeek(d);if(w>=fFromW&&w<=fToW)idx.push(i);});
   const sl=arr=>idx.map(i=>arr[i]);
 
   const dates     =sl(D.dates);
@@ -679,7 +693,7 @@ function getFiltered(){
 // ── Render all charts ─────────────────────────────────────────────────────────
 function renderAll(){
   const fd=getFiltered();
-  const range=fFrom+' 至 '+fTo;
+  const range=fFromW+' 至 '+fToW;
   document.querySelectorAll('.filter-range').forEach(el=>el.textContent=range);
 
   // Update dynamic text elements
@@ -734,57 +748,61 @@ function renderAll(){
       text:fd.month_txn.map(v=>Math.round(v).toLocaleString()+'笔'),textposition:'outside',textfont:{size:10}}
   ],mk({yaxis:{title:'交易笔数'},margin:{t:20,r:10,b:50,l:60},xaxis:{tickangle:-30}}),cfg);
 
-  // ③b 日均分析表格
+  // ── OKR 指标渲染 ──────────────────────────────────────────────────────────────
   (function(){
-    // 月均表
-    const tbody_m=document.getElementById('tbl_month_avg_body');
-    tbody_m.innerHTML='';
-    fd.month_keys.forEach((m,i)=>{
-      const prevAvg=i>0?fd.month_avg_sales[i-1]:null;
-      const chg=prevAvg?(fd.month_avg_sales[i]-prevAvg)/prevAvg*100:null;
-      const chgHtml=chg!=null?`<span style="color:${chg>=0?'var(--green)':'var(--red)'};font-size:10px"> ${chg>=0?'▲':'▼'}${Math.abs(chg).toFixed(1)}%</span>`:'';
-      const isLatest=i===fd.month_keys.length-1;
-      const style=isLatest?'border-top:1px solid var(--border);background:rgba(200,169,110,0.05)':'border-top:1px solid var(--border)';
-      tbody_m.innerHTML+=`<tr style="${style}">
-        <td style="padding:7px 10px;font-weight:${isLatest?600:400};color:${isLatest?'var(--gold)':'var(--text)'}">${m}${isLatest?' <span style="font-size:9px;color:var(--sub)">(本月)</span>':''}</td>
-        <td style="padding:7px 10px;text-align:center;color:var(--sub)">${fd.month_days[i]}</td>
-        <td style="padding:7px 10px;text-align:right">HK$ ${Math.round(fd.month_avg_sales[i]).toLocaleString()}${chgHtml}</td>
-        <td style="padding:7px 10px;text-align:right">${Math.round(fd.month_avg_txn[i]).toLocaleString()} 笔</td>
-        <td style="padding:7px 10px;text-align:right">${Math.round(fd.month_avg_cups[i]).toLocaleString()} 杯</td>
-      </tr>`;
+    // 周度汇总
+    const wo2={};
+    fd.dates.forEach((d,i)=>{
+      const wk=dateToWeek(d);
+      if(!wo2[wk])wo2[wk]={sales:0,days:0};
+      wo2[wk].sales+=fd.sales[i];wo2[wk].days+=1;
     });
-    // 周均表
-    const tbody_w=document.getElementById('tbl_week_avg_body');
-    tbody_w.innerHTML='';
-    fd.week_keys_f.forEach((w,i)=>{
-      const isLatest=i===fd.week_keys_f.length-1;
-      const style=isLatest?'border-top:1px solid var(--border);background:rgba(200,169,110,0.05)':'border-top:1px solid var(--border)';
-      tbody_w.innerHTML+=`<tr style="${style}">
-        <td style="padding:7px 10px;font-weight:${isLatest?600:400};color:${isLatest?'var(--gold)':'var(--text)'}">${w}${isLatest?' <span style="font-size:9px;color:var(--sub)">(本周)</span>':''}</td>
-        <td style="padding:7px 10px;text-align:center;color:var(--sub)">${fd.week_days_f[i]}</td>
-        <td style="padding:7px 10px;text-align:right">HK$ ${Math.round(fd.week_avg_sales[i]).toLocaleString()}</td>
-        <td style="padding:7px 10px;text-align:right">${Math.round(fd.week_avg_txn[i]).toLocaleString()} 笔</td>
-        <td style="padding:7px 10px;text-align:right">${Math.round(fd.week_avg_cups[i]).toLocaleString()} 杯</td>
-      </tr>`;
-    });
-  })();
+    const wk_keys=Object.keys(wo2).sort();
+    const wk_sales=wk_keys.map(w=>wo2[w].sales);
 
-  // 月均趋势图
-  Plotly.react('chart_month_avg_sales',[
-    {x:fd.month_keys,y:fd.month_avg_sales,type:'scatter',mode:'lines+markers',name:'日均营业额',
-      line:{color:'#c8a96e',width:2},marker:{size:6},
-      text:fd.month_avg_sales.map(v=>'HK$'+Math.round(v).toLocaleString()),textposition:'top center',textfont:{size:9}}
-  ],mk({yaxis:{title:'日均营业额 HK$'},margin:{t:20,r:10,b:50,l:70},xaxis:{tickangle:-30}}),cfg);
-  Plotly.react('chart_month_avg_txn_cups',[
-    {x:fd.month_keys,y:fd.month_avg_txn,type:'bar',name:'日均订单数',marker:{color:'#5b8fc9'},yaxis:'y'},
-    {x:fd.month_keys,y:fd.month_avg_cups,type:'scatter',mode:'lines+markers',name:'日均杯数',
-      line:{color:'#4caf7d',width:2},marker:{size:5},yaxis:'y2'},
-  ],mk({
-    barmode:'group',
-    yaxis:{title:'日均订单数（笔）',gridcolor:GRID},
-    yaxis2:{title:'日均杯数',overlaying:'y',side:'right',gridcolor:'transparent'},
-    margin:{t:8,r:60,b:50,l:65},xaxis:{tickangle:-30},
-  }),cfg);
+    // O2-KR3: F&B月均营业额 vs 目标HK$158,750
+    const fb_mth_avg=fd.month_keys.length?fd.month_sales.reduce((s,v)=>s+v,0)/fd.month_keys.length:0;
+    const fb_pct=Math.min(fb_mth_avg/FB_TARGET_MTH*100,150);
+    document.getElementById('okr_fb_val').textContent='HK$ '+Math.round(fb_mth_avg).toLocaleString();
+    document.getElementById('okr_fb_val').className='okr-val '+(fb_pct>=100?'okr-hit':'okr-miss');
+    document.getElementById('okr_fb_fill').style.width=Math.min(fb_pct,100).toFixed(1)+'%';
+    document.getElementById('okr_fb_fill').style.background=fb_pct>=100?'var(--green)':'var(--gold)';
+    document.getElementById('okr_fb_note').textContent=fb_pct.toFixed(1)+'% 达成 · 月均 '+fd.month_keys.length+' 个月';
+
+    // O3-KR1: 日均人流 (使用全期静态数据)
+    const ft_avg=D.ft?D.ft.kpi_daily_avg:0;
+    const ft_pct=Math.min(ft_avg/TARGET_DAILY_FT*100,150);
+    document.getElementById('okr_ft_val').textContent=ft_avg?ft_avg.toLocaleString()+' 人':'无数据';
+    document.getElementById('okr_ft_val').className='okr-val '+(ft_avg?ft_pct>=100?'okr-hit':'okr-miss':'okr-na');
+    document.getElementById('okr_ft_fill').style.width=Math.min(ft_pct,100).toFixed(1)+'%';
+    document.getElementById('okr_ft_fill').style.background=ft_pct>=100?'var(--green)':'var(--blue)';
+    if(D.ft)document.getElementById('okr_ft_note').textContent=ft_pct.toFixed(1)+'% 达成 · 全期日均';
+
+    // O4-KR3: 近4周收支比
+    const last4=wk_sales.slice(-4);
+    const last4Avg=last4.length?last4.reduce((s,v)=>s+v,0)/last4.length:0;
+    const pl_ratio=last4Avg/WEEKLY_COST*100;
+    document.getElementById('okr_pl_val').textContent=pl_ratio.toFixed(1)+'%';
+    document.getElementById('okr_pl_val').className='okr-val '+(pl_ratio>=100?'okr-hit':'okr-miss');
+    document.getElementById('okr_pl_fill').style.width=Math.min(pl_ratio,100).toFixed(1)+'%';
+    document.getElementById('okr_pl_fill').style.background=pl_ratio>=100?'var(--green)':'var(--red)';
+    document.getElementById('okr_pl_note').textContent='周均 HK$'+Math.round(last4Avg).toLocaleString()+' / 成本 HK$'+Math.round(WEEKLY_COST).toLocaleString();
+
+    // Weekly P&L chart
+    const costLine=Array(wk_keys.length).fill(WEEKLY_COST);
+    Plotly.react('chart_weekly_pl',[
+      {x:wk_keys,y:wk_sales,type:'bar',name:'周营业额',
+        marker:{color:wk_sales.map(v=>v>=WEEKLY_COST?'rgba(42,122,82,0.75)':'rgba(192,57,43,0.55)')},
+        hovertemplate:'%{x}<br>HK$ %{y:,.0f}<extra></extra>'},
+      {x:wk_keys,y:costLine,type:'scatter',mode:'lines',name:'固定成本线',
+        line:{color:'#c0392b',width:1.5,dash:'dot'},
+        hovertemplate:'成本基线 HK$ %{y:,.0f}<extra></extra>'},
+    ],mk({
+      yaxis:{title:'HK$',gridcolor:GRID},
+      margin:{t:8,r:12,b:50,l:70},xaxis:{tickangle:-30,tickfont:{size:9}},
+      barmode:'group',
+    }),cfg);
+  })();
 
   // ④ 品类
   Plotly.react('chart_cat_pie',[
