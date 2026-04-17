@@ -287,7 +287,7 @@ tbody td{padding:9px 13px;vertical-align:middle}
     </div>
   </div>
   <div class="hdr-right">
-    <span class="updated">更新 2026-04-17 18:15</span>
+    <span class="updated">更新 2026-04-17 18:17</span>
     <span class="badge">AUTO REPORT</span>
   </div>
 </div>
@@ -662,14 +662,14 @@ tbody td{padding:9px 13px;vertical-align:middle}
 
   <!-- LB用户渗透率周趋势 -->
   <div class="chart-box" style="margin-bottom:14px" id="pen-weekly-box">
-    <div class="ct">LB 有效用户到访 · 周趋势<span class="info-badge" style="vertical-align:middle;margin-left:6px" data-tip="横轴为自然周（周一起始）。蓝柱=本周唯一门禁扫码 LB 用户（按用户ID周内去重）；紫柱=本周 HK 卡券核销用户数。两柱有重叠但难以精确去重，合计为近似值。金线=4周滚动均值">ⓘ</span></div>
-    <div class="cs">每周到访 LB 用户：门禁扫码（周内去重）+ HK 卡券核销 · 4周均线 · A Tag ≠ A0</div>
+    <div class="ct">LB 有效用户到访 · 周趋势<span class="info-badge" style="vertical-align:middle;margin-left:6px" data-tip="横轴为自然周（周一起始）。蓝柱=本周唯一门禁扫码 LB 用户（按用户ID周内去重 · 全量）；紫柱=本周卡券核销用户数（全量）。两柱有重叠但难以精确去重，合计为近似值。金线=4周滚动均值">ⓘ</span></div>
+    <div class="cs">每周到访 LB 用户：门禁扫码（周内去重）+ 卡券核销 · 4周均线 · 全量 · A Tag ≠ A0</div>
     <div id="chart_pen_weekly" style="height:260px"></div>
   </div>
   <div class="grid c2" style="margin-bottom:14px" id="pen-stats-box">
     <div class="chart-box">
-      <div class="ct">LB 有效用户渗透率 · 累计走势<span class="info-badge" style="vertical-align:middle;margin-left:6px" data-tip="实线=HK 有效用户累计渗透率（累计唯一到访 HK 用户 ÷ HK 有效用户总数）。数据来自 Metabase 每日查询，已精确去重（门禁 ∪ 卡券 SQL UNION）">ⓘ</span></div>
-      <div class="cs">累计唯一到访（门禁 ∪ 卡券，SQL 精确去重） ÷ HK 有效用户总数</div>
+      <div class="ct">LB 有效用户渗透率 · 累计走势<span class="info-badge" style="vertical-align:middle;margin-left:6px" data-tip="实线=全量有效用户累计渗透率（累计唯一到访用户 ÷ 全量有效用户总数）。数据来自 Metabase 每日查询，已精确去重（门禁 ∪ 卡券 SQL UNION）">ⓘ</span></div>
+      <div class="cs">累计唯一到访（门禁 ∪ 卡券，SQL 精确去重） ÷ 全量有效用户总数</div>
       <div id="chart_pen_cumulative" style="height:220px"></div>
     </div>
     <div class="chart-box" style="display:flex;flex-direction:column;justify-content:center;padding:18px 20px">
