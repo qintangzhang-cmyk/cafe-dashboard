@@ -287,7 +287,7 @@ tbody td{padding:9px 13px;vertical-align:middle}
     </div>
   </div>
   <div class="hdr-right">
-    <span class="updated">更新 2026-04-17 16:58</span>
+    <span class="updated">更新 2026-04-17 17:11</span>
     <span class="badge">AUTO REPORT</span>
   </div>
 </div>
@@ -1111,8 +1111,8 @@ function renderAll(){
       // Summary panel
       const lastW = pw[pw.length-1];
       const prevW = pw.length>=2 ? pw[pw.length-2] : null;
-      const lastAcU = acUnique[acUnique.length-1]||0;
-      const prevAcU = acUnique.length>=2 ? acUnique[acUnique.length-2] : 0;
+      const lastAcU = acHkUnique[acHkUnique.length-1]||0;
+      const prevAcU = acHkUnique.length>=2 ? acHkUnique[acHkUnique.length-2] : 0;
       const l4avg = Math.round(combined.slice(-4).reduce((s,v)=>s+v,0)/Math.min(4,combined.length));
       const hkPct = hkTotal ? (D.pen_hk_visitors/hkTotal*100).toFixed(2) : '—';
       const allPct= allTotal? (D.pen_all_visitors/allTotal*100).toFixed(2): '—';
