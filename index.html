@@ -287,7 +287,7 @@ tbody td{padding:9px 13px;vertical-align:middle}
     </div>
   </div>
   <div class="hdr-right">
-    <span class="updated">更新 2026-04-17 17:11</span>
+    <span class="updated">更新 2026-04-17 18:15</span>
     <span class="badge">AUTO REPORT</span>
   </div>
 </div>
@@ -1036,36 +1036,34 @@ function renderAll(){
       if(!pw.length){ ['pen-weekly-box','pen-stats-box'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';}); return; }
 
       const wks       = pw.map(d=>d.week);
-      const vhk       = pw.map(d=>d.voucher_hk||0);
+      const vall      = pw.map(d=>d.voucher_all||0);
       const hkTotal   = D.pen_hk_total  || 0;
       const allTotal  = D.pen_all_total || 0;
 
-      // Weekly de-duped AC unique counts — HK-only and all-region
-      const wauHkMap  = (D.ft && D.ft.weekly_ac_hk_unique) ? D.ft.weekly_ac_hk_unique : {};
-      const wauAllMap = (D.ft && D.ft.weekly_ac_unique)    ? D.ft.weekly_ac_unique    : {};
-      const acHkUnique  = pw.map(d=>wauHkMap[d.week]||0);
+      // Weekly de-duped AC unique counts (全量 all-region)
+      const wauAllMap = (D.ft && D.ft.weekly_ac_unique) ? D.ft.weekly_ac_unique : {};
       const acAllUnique = pw.map(d=>wauAllMap[d.week]||0);
 
-      // 4-week rolling avg of (acHkUnique + voucher_hk) as proxy for HK LB visitors
-      const combined = pw.map((d,i)=>acHkUnique[i]+(d.voucher_hk||0));
+      // 4-week rolling avg of (acAllUnique + voucher_all) as proxy for 全量 LB visitors
+      const combined = pw.map((d,i)=>acAllUnique[i]+(d.voucher_all||0));
       const roll4 = combined.map((_,i)=>{
         const sl=combined.slice(Math.max(0,i-3),i+1);
         return Math.round(sl.reduce((s,v)=>s+v,0)/sl.length);
       });
 
-      // WoW % change annotation on latest acHkUnique bar
-      const latestWoW = acHkUnique.length>=2 && acHkUnique[acHkUnique.length-2]>0
-        ? ((acHkUnique[acHkUnique.length-1]-acHkUnique[acHkUnique.length-2])/acHkUnique[acHkUnique.length-2]*100).toFixed(1)
+      // WoW % change annotation on latest acAllUnique bar
+      const latestWoW = acAllUnique.length>=2 && acAllUnique[acAllUnique.length-2]>0
+        ? ((acAllUnique[acAllUnique.length-1]-acAllUnique[acAllUnique.length-2])/acAllUnique[acAllUnique.length-2]*100).toFixed(1)
         : null;
 
-      // Chart 1: de-duped weekly HK AC (stacked with voucher) + 4-week rolling avg
+      // Chart 1: de-duped weekly AC (全量，stacked with 全量 voucher) + 4-week rolling avg
       Plotly.react('chart_pen_weekly',[
-        {x:wks, y:acHkUnique, type:'bar', name:'HK 门禁扫码用户（周内去重）',
+        {x:wks, y:acAllUnique, type:'bar', name:'门禁扫码用户（周内去重 · 全量）',
           marker:{color:'rgba(32,96,160,.65)'},
-          hovertemplate:'%{x}<br>HK门禁（周去重）: %{y} 人<extra></extra>'},
-        {x:wks, y:vhk, type:'bar', name:'HK 卡券核销用户',
+          hovertemplate:'%{x}<br>门禁（周去重）: %{y} 人<extra></extra>'},
+        {x:wks, y:vall, type:'bar', name:'卡券核销用户（全量）',
           marker:{color:'rgba(92,61,158,.50)'},
-          hovertemplate:'%{x}<br>HK券核销: %{y} 人<extra></extra>'},
+          hovertemplate:'%{x}<br>券核销: %{y} 人<extra></extra>'},
         {x:wks, y:roll4, type:'scatter', mode:'lines+markers', name:'4周均线（近似）',
           line:{color:'#c8a86a',width:2},
           marker:{size:4,color:'#c8a86a'},
@@ -1076,32 +1074,30 @@ function renderAll(){
         margin:{t:10,r:14,b:42,l:52},
         xaxis:{tickangle:-30,tickfont:{size:9}},
         annotations: latestWoW ? [{
-          x:wks[wks.length-1], y:acHkUnique[acHkUnique.length-1],
-          text:(parseFloat(latestWoW)>=0?'▲':'▼')+Math.abs(latestWoW)+'% WoW（HK门禁）',
+          x:wks[wks.length-1], y:acAllUnique[acAllUnique.length-1],
+          text:(parseFloat(latestWoW)>=0?'▲':'▼')+Math.abs(latestWoW)+'% WoW（门禁）',
           showarrow:false, yanchor:'bottom', yshift:4,
           font:{size:10, color:parseFloat(latestWoW)>=0?'#b83030':'#1c7a48'}
         }] : []
       }),cfg);
 
-      // Chart 2: cumulative penetration % line (approximate: running HK voucher / hkTotal)
+      // Chart 2: cumulative penetration % line (全量 voucher / allTotal)
       // Use cumulative unique (approximation: sum of weekly, knowing it overcounts repeats)
-      // Better: just show cumulative from the total penetration and weekly decay
-      const cumHkPct = [];
+      // Scale to end at pen_all_visitors/allTotal
+      const cumAllPct = [];
       let runSum = 0;
-      vhk.forEach(v=>{ runSum+=v; cumHkPct.push(hkTotal ? +(runSum/hkTotal*100).toFixed(2) : 0); });
-      // Actual final value should match pen_hk_visitors/hkTotal
-      // Scale the cumulative to end at the correct value
-      const rawEnd = cumHkPct[cumHkPct.length-1];
-      const trueEnd = hkTotal ? +(D.pen_hk_visitors/hkTotal*100) : rawEnd;
+      vall.forEach(v=>{ runSum+=v; cumAllPct.push(allTotal ? +(runSum/allTotal*100).toFixed(2) : 0); });
+      const rawEnd = cumAllPct[cumAllPct.length-1];
+      const trueEnd = allTotal ? +(D.pen_all_visitors/allTotal*100) : rawEnd;
       const scale = rawEnd > 0 ? trueEnd/rawEnd : 1;
-      const scaledCum = cumHkPct.map(v=>+(v*scale).toFixed(2));
+      const scaledCum = cumAllPct.map(v=>+(v*scale).toFixed(2));
 
       Plotly.react('chart_pen_cumulative',[
-        {x:wks, y:scaledCum, type:'scatter', mode:'lines+markers', name:'累计渗透率',
+        {x:wks, y:scaledCum, type:'scatter', mode:'lines+markers', name:'累计渗透率（全量）',
           line:{color:'#5b83c7',width:2.5},
           marker:{size:5,color:'#5b83c7'},
           fill:'tozeroy', fillcolor:'rgba(91,131,199,.08)',
-          hovertemplate:'%{x}<br>累计HK渗透: %{y}%<extra></extra>'},
+          hovertemplate:'%{x}<br>累计渗透（全量）: %{y}%<extra></extra>'},
       ],mk({
         yaxis:{title:'渗透率 %',ticksuffix:'%',gridcolor:GRID},
         margin:{t:10,r:14,b:42,l:56},
@@ -1111,8 +1107,8 @@ function renderAll(){
       // Summary panel
       const lastW = pw[pw.length-1];
       const prevW = pw.length>=2 ? pw[pw.length-2] : null;
-      const lastAcU = acHkUnique[acHkUnique.length-1]||0;
-      const prevAcU = acHkUnique.length>=2 ? acHkUnique[acHkUnique.length-2] : 0;
+      const lastAcU = acAllUnique[acAllUnique.length-1]||0;
+      const prevAcU = acAllUnique.length>=2 ? acAllUnique[acAllUnique.length-2] : 0;
       const l4avg = Math.round(combined.slice(-4).reduce((s,v)=>s+v,0)/Math.min(4,combined.length));
       const hkPct = hkTotal ? (D.pen_hk_visitors/hkTotal*100).toFixed(2) : '—';
       const allPct= allTotal? (D.pen_all_visitors/allTotal*100).toFixed(2): '—';
@@ -1121,9 +1117,9 @@ function renderAll(){
       document.getElementById('pen_summary_html').innerHTML = `
         <b>HK 有效用户渗透率：</b>${hkPct}%（${(D.pen_hk_visitors||0).toLocaleString()} / ${hkTotal.toLocaleString()}）<br>
         <b>全量有效用户渗透率：</b>${allPct}%（${(D.pen_all_visitors||0).toLocaleString()} / ${allTotal.toLocaleString()}）<br>
-        <b>本周门禁到访（去重）：</b>${lastAcU} 人&emsp;WoW ${wowTxt}<br>
-        <b>本周 HK 券核销：</b>${lastW.voucher_hk} 人<br>
-        <b>近4周均值（门禁+券）：</b>${l4avg} 人/周&emsp;<span style="color:var(--sub2);font-size:10px">含重叠，为近似值</span><br>
+        <b>本周门禁到访（去重 · 全量）：</b>${lastAcU} 人&emsp;WoW ${wowTxt}<br>
+        <b>本周券核销（全量）：</b>${lastW.voucher_all} 人&emsp;<span style="color:var(--sub2);font-size:10px">HK ${lastW.voucher_hk} 人</span><br>
+        <b>近4周均值（门禁+券 · 全量）：</b>${l4avg} 人/周&emsp;<span style="color:var(--sub2);font-size:10px">含重叠，为近似值</span><br>
         <b>数据更新日期：</b>${D.pen_updated_at||'—'}
       `;
     })();
