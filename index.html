@@ -287,7 +287,7 @@ tbody td{padding:9px 13px;vertical-align:middle}
     </div>
   </div>
   <div class="hdr-right">
-    <span class="updated">更新 2026-04-17 15:08</span>
+    <span class="updated">更新 2026-04-17 15:11</span>
     <span class="badge">AUTO REPORT</span>
   </div>
 </div>
@@ -1055,7 +1055,7 @@ function renderAll(){
       const allTotal  = D.pen_all_total || 0;
 
       // Weekly de-duped AC unique counts from ft.weekly_ac_unique (computed locally from raw_cache.json)
-      const wauMap = (ft && ft.weekly_ac_unique) ? ft.weekly_ac_unique : {};
+      const wauMap = (D.ft && D.ft.weekly_ac_unique) ? D.ft.weekly_ac_unique : {};
       const acUnique = pw.map(d=>wauMap[d.week]||0);
 
       // 4-week rolling avg of (ac_unique + voucher_hk) as proxy for total LB visitors
