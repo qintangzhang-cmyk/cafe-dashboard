@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LONGBRIDGE Café 门店经营分析报告</title>
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root {
   --bg:#eef0f5;
@@ -273,10 +274,53 @@ tbody td{padding:9px 13px;vertical-align:middle}
   .hdr,.nav,.filter-bar{padding-left:16px;padding-right:16px}
   .hdr-meta,.filter-sep{display:none}
 }
+/* ── AUTH OVERLAY ───────────────────────────────────── */
+#auth-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,#0c1520 0%,#1a2d42 100%);
+  display:flex;align-items:center;justify-content:center;
+}
+.auth-card{
+  background:#fff;border-radius:16px;padding:48px 40px;
+  width:360px;text-align:center;
+  box-shadow:0 24px 64px rgba(0,0,0,.45);
+}
+.auth-logo{font-size:22px;font-weight:800;color:#0c1520;margin-bottom:4px}
+.auth-logo em{font-style:normal;color:#c8a86a}
+.auth-subtitle{font-size:12px;color:#667285;margin-bottom:32px}
+.auth-divider{height:1px;background:#eee;margin:24px 0}
+.auth-error{font-size:12px;color:#b83030;margin-top:16px;min-height:18px}
+#app{display:none}
 </style>
 </head>
 <body>
 
+<!-- AUTH OVERLAY -->
+<div id="auth-overlay">
+  <div class="auth-card">
+    <div class="auth-logo">LONGBRIDGE <em>Café</em></div>
+    <div class="auth-subtitle">门店经营分析报告 · 内部访问</div>
+    <div id="g_id_onload"
+      data-client_id="884541501389-rsulrh11bksq41k9hpfhol2cks4ue5sj.apps.googleusercontent.com"
+      data-callback="handleGoogleAuth"
+      data-auto_select="true">
+    </div>
+    <div class="g_id_signin"
+      data-type="standard"
+      data-shape="rectangular"
+      data-theme="outline"
+      data-text="signin_with"
+      data-size="large"
+      data-locale="zh_CN"
+      data-width="280">
+    </div>
+    <div id="auth-error" class="auth-error"></div>
+    <div class="auth-divider"></div>
+    <div style="font-size:11px;color:#a4aebe">仅限 @longbridge 邮箱账号访问</div>
+  </div>
+</div>
+
+<div id="app">
 <div class="hdr">
   <div class="hdr-left">
     <div class="hdr-brand">LONGBRIDGE <em>Café</em></div>
@@ -287,7 +331,7 @@ tbody td{padding:9px 13px;vertical-align:middle}
     </div>
   </div>
   <div class="hdr-right">
-    <span class="updated">更新 2026-04-17 21:42</span>
+    <span class="updated">更新 2026-04-17 22:10</span>
     <span class="badge">AUTO REPORT</span>
   </div>
 </div>
@@ -1369,6 +1413,48 @@ renderAll();
       marker:{colors:[FT_BLU,FT_PRP,FT_GRN]},
       textinfo:'label+percent', textfont:{size:11}}
   ], mk({margin:{t:10,r:10,b:10,l:10}}), ft_cfg);
+})();
+</script>
+
+</div><!-- /#app -->
+
+<script>
+(function(){
+  const ALLOWED = ["longbridge-inc.com", "longbridge.com"];
+  const STORAGE_KEY = 'cafe_auth_v1';
+  const TTL_MS = 86400000;
+
+  function showApp() {
+    document.getElementById('auth-overlay').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  }
+
+  function parseJwt(token) {
+    try {
+      return JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+    } catch(e) { return null; }
+  }
+
+  window.handleGoogleAuth = function(response) {
+    const payload = parseJwt(response.credential);
+    if (!payload) { document.getElementById('auth-error').textContent = '验证失败，请重试。'; return; }
+    const email = (payload.email || '').toLowerCase();
+    const domain = email.split('@')[1] || '';
+    if (ALLOWED.includes(domain)) {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ email, ts: Date.now() }));
+      showApp();
+    } else {
+      document.getElementById('auth-error').textContent = email + ' 无访问权限，请使用 @longbridge 邮箱。';
+    }
+  };
+
+  // Check existing session
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null');
+    if (saved && (Date.now() - saved.ts) < 86400000) { showApp(); return; }
+  } catch(e) {}
+
+  // Show overlay (already visible by default)
 })();
 </script>
 </body>
