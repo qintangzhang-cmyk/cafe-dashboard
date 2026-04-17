@@ -262,7 +262,7 @@ tbody td{padding:9px 13px;vertical-align:middle}
     </div>
   </div>
   <div class="hdr-right">
-    <span class="updated">更新 2026-04-17 13:43</span>
+    <span class="updated">更新 2026-04-17 13:51</span>
     <span class="badge">AUTO REPORT</span>
   </div>
 </div>
@@ -888,8 +888,6 @@ function renderAll(){
   document.getElementById('bar_keeta_val').textContent='HK$ '+Math.round(fd.tot_keeta).toLocaleString();
   document.getElementById('bar_fp_fill').style.width=fd.fp_pct_bar.toFixed(1)+'%';
   document.getElementById('bar_fp_val').textContent='HK$ '+Math.round(fd.tot_fp).toLocaleString();
-  document.getElementById('bw_black_pct').textContent=fd.blk_pct.toFixed(1)+'%';
-  document.getElementById('bw_white_pct').textContent=fd.wht_pct.toFixed(1)+'%';
 
   const WD_COLOR=fd.wd_avg_sales.map((_,i)=>i>=4?'rgba(195,155,72,.85)':'rgba(32,96,160,.70)');
   const WD_NAMES=['周一','周二','周三','周四','周五','周六','周日'];
