@@ -287,7 +287,7 @@ tbody td{padding:9px 13px;vertical-align:middle}
     </div>
   </div>
   <div class="hdr-right">
-    <span class="updated">更新 2026-04-17 15:11</span>
+    <span class="updated">更新 2026-04-17 15:15</span>
     <span class="badge">AUTO REPORT</span>
   </div>
 </div>
@@ -647,17 +647,10 @@ tbody td{padding:9px 13px;vertical-align:middle}
   </div>
 
   <!-- Weekday + Heatmap -->
-  <div class="grid c2" style="margin-bottom:14px">
-    <div class="chart-box">
-      <div class="ct">各星期日均进店人次<span class="info-badge" style="vertical-align:middle;margin-left:6px" data-tip="按星期几分组，统计每天平均进店人次（人流计数器）">ⓘ</span></div>
-      <div class="cs">各星期日均进店总人次（人流计数器）</div>
-      <div id="chart_ft_wd" style="height:220px"></div>
-    </div>
-    <div class="chart-box">
-      <div class="ct">客流热力图<span class="info-badge" style="vertical-align:middle;margin-left:6px" data-tip="横轴为周次，纵轴为星期几，颜色越深代表进店人次越高（人流计数器）">ⓘ</span></div>
-      <div class="cs">按周 × 星期几分布（人流计数器），颜色越深人次越高</div>
-      <div id="chart_ft_heatmap" style="height:220px"></div>
-    </div>
+  <div class="chart-box" style="margin-bottom:14px">
+    <div class="ct">各星期日均进店人次<span class="info-badge" style="vertical-align:middle;margin-left:6px" data-tip="按星期几分组，统计每天平均进店人次（人流计数器）">ⓘ</span></div>
+    <div class="cs">各星期日均进店总人次（人流计数器）</div>
+    <div id="chart_ft_wd" style="height:220px"></div>
   </div>
 
   <!-- Monthly + Doors -->
@@ -1371,13 +1364,6 @@ renderAll();
   Plotly.react('chart_ft_wd', [
     {x:ft.dow_names, y:ft.dow_total, type:'bar', name:'日均进店人次', marker:{color:FT_BLU}},
   ], mk({margin:{t:8,r:10,b:40,l:55}, yaxis:{title:'人次',gridcolor:GRID}}), ft_cfg);
-
-  // Heatmap
-  Plotly.react('chart_ft_heatmap', [
-    {z:ft.hm_z, x:ft.hm_x, y:ft.hm_y, type:'heatmap',
-      colorscale:[[0,'#f0f4ff'],[0.5,'#60a5fa'],[1,'#1e3a8a']],
-      showscale:false, hovertemplate:'%{y} %{x}<br>%{z:,} 人<extra></extra>'}
-  ], mk({margin:{t:8,r:8,b:40,l:50}, xaxis:{tickfont:{size:9}}}), ft_cfg);
 
   // Monthly — 门禁 vs 券核销对比
   const pen_month_ac = {}, pen_month_v = {};
