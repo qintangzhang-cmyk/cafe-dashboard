@@ -287,7 +287,7 @@ tbody td{padding:9px 13px;vertical-align:middle}
     </div>
   </div>
   <div class="hdr-right">
-    <span class="updated">更新 2026-04-17 15:15</span>
+    <span class="updated">更新 2026-04-17 15:20</span>
     <span class="badge">AUTO REPORT</span>
   </div>
 </div>
@@ -653,18 +653,11 @@ tbody td{padding:9px 13px;vertical-align:middle}
     <div id="chart_ft_wd" style="height:220px"></div>
   </div>
 
-  <!-- Monthly + Doors -->
-  <div class="grid c2" style="margin-bottom:14px">
-    <div class="chart-box">
-      <div class="ct">月度 LB 到店来源对比<span class="info-badge" style="vertical-align:middle;margin-left:6px" data-tip="蓝色=门禁扫码人次（每日 LB 用户去重），紫色=卡券核销人次（Eats365 + Keeta）。两者存在重叠，不直接相加">ⓘ</span></div>
-      <div class="cs">月度门禁扫码（LB用户）vs 卡券核销人次（两者可重叠，非唯一合并）</div>
-      <div id="chart_ft_monthly" style="height:220px"></div>
-    </div>
-    <div class="chart-box">
-      <div class="ct">进店方式占比（三门）<span class="info-badge" style="vertical-align:middle;margin-left:6px" data-tip="A闸=正门，B闸=次入口，侧门=侧面入口。数据来源：各闸口人流计数器。可用于判断主要进入路径">ⓘ</span></div>
-      <div class="cs">A 闸（正门） · B 闸 · 侧门 &nbsp;·&nbsp; 人流计数器</div>
-      <div id="chart_ft_doors" style="height:220px"></div>
-    </div>
+  <!-- Doors -->
+  <div class="chart-box" style="margin-bottom:14px">
+    <div class="ct">进店方式占比（三门）<span class="info-badge" style="vertical-align:middle;margin-left:6px" data-tip="A闸=正门，B闸=次入口，侧门=侧面入口。数据来源：各闸口人流计数器。可用于判断主要进入路径">ⓘ</span></div>
+    <div class="cs">A 闸（正门） · B 闸 · 侧门 &nbsp;·&nbsp; 人流计数器</div>
+    <div id="chart_ft_doors" style="height:220px"></div>
   </div>
 
   <!-- LB用户渗透率周趋势 -->
@@ -1364,19 +1357,6 @@ renderAll();
   Plotly.react('chart_ft_wd', [
     {x:ft.dow_names, y:ft.dow_total, type:'bar', name:'日均进店人次', marker:{color:FT_BLU}},
   ], mk({margin:{t:8,r:10,b:40,l:55}, yaxis:{title:'人次',gridcolor:GRID}}), ft_cfg);
-
-  // Monthly — 门禁 vs 券核销对比
-  const pen_month_ac = {}, pen_month_v = {};
-  ft.month_keys.forEach((m,i)=>{ pen_month_ac[m]=ft.month_ac[i]||0; });
-  pw.forEach(w=>{
-    const m=w.week.substring(0,7);
-    pen_month_v[m]=(pen_month_v[m]||0)+(w.voucher_all||0);
-  });
-  const monthly_v = ft.month_keys.map(m=>pen_month_v[m]||0);
-  Plotly.react('chart_ft_monthly', [
-    {x:ft.month_keys, y:ft.month_ac,  type:'bar', name:'门禁扫码', marker:{color:FT_BLU}},
-    {x:ft.month_keys, y:monthly_v,    type:'bar', name:'卡券核销', marker:{color:'rgba(92,61,158,.55)'}},
-  ], mk({barmode:'group', margin:{t:8,r:10,b:50,l:55}, xaxis:{tickangle:-30}}), ft_cfg);
 
   // Doors pie（保留用于进门方式参考）
   const totA = ft.gate_a.reduce((s,v)=>s+v,0);
