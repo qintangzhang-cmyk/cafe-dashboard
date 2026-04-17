@@ -287,7 +287,7 @@ tbody td{padding:9px 13px;vertical-align:middle}
     </div>
   </div>
   <div class="hdr-right">
-    <span class="updated">更新 2026-04-17 18:17</span>
+    <span class="updated">更新 2026-04-17 18:19</span>
     <span class="badge">AUTO REPORT</span>
   </div>
 </div>
@@ -353,7 +353,7 @@ tbody td{padding:9px 13px;vertical-align:middle}
           <div class="okr-val" id="okr_pen_all_val" style="font-size:18px">—</div>
         </div>
       </div>
-      <div class="okr-target">有效用户 = A Tag ≠ A0 &nbsp;·&nbsp; 到访 = 门禁扫码 ∪ 券核销（去重）&nbsp;·&nbsp; 目标待定</div>
+      <div class="okr-target">目标 ≥ 15%（HK）&nbsp;·&nbsp; 有效用户 = A Tag ≠ A0 &nbsp;·&nbsp; 到访 = 门禁扫码 ∪ 券核销（去重）</div>
       <div class="okr-prog-track"><div class="okr-prog-fill" id="okr_pen_fill" style="width:0%;background:var(--blue)"></div></div>
       <div class="okr-note" id="okr_pen_note">数据更新中</div>
     </div>
@@ -1013,20 +1013,23 @@ function renderAll(){
     const pen_all_pct = pen_all_t ? (pen_all_v / pen_all_t * 100) : 0;
     const penHkEl  = document.getElementById('okr_pen_hk_val');
     const penAllEl = document.getElementById('okr_pen_all_val');
+    const PEN_TARGET = 15;
     if(penHkEl){
       penHkEl.textContent  = pen_hk_pct  ? pen_hk_pct.toFixed(2)+'%'  : '无数据';
-      penHkEl.className    = 'okr-val '+(pen_hk_pct>0?'okr-miss':'okr-na');
+      penHkEl.className    = 'okr-val '+(pen_hk_pct>=PEN_TARGET?'okr-hit':(pen_hk_pct>0?'okr-miss':'okr-na'));
     }
     if(penAllEl){
       penAllEl.textContent = pen_all_pct ? pen_all_pct.toFixed(2)+'%' : '无数据';
       penAllEl.className   = 'okr-val '+(pen_all_pct>0?'okr-miss':'okr-na');
     }
-    // Progress bar based on HK penetration, scale 0–20% → 0–100%
-    document.getElementById('okr_pen_fill').style.width=Math.min(pen_hk_pct/20*100,100).toFixed(1)+'%';
+    // Progress bar based on HK penetration vs 15% target
+    const pen_fill = Math.min(pen_hk_pct/PEN_TARGET*100,100);
+    document.getElementById('okr_pen_fill').style.width=pen_fill.toFixed(1)+'%';
+    document.getElementById('okr_pen_fill').style.background=pen_hk_pct>=PEN_TARGET?'var(--green)':'var(--blue)';
     if(pen_hk_v){
       const updTxt = D.pen_updated_at ? ' · 更新于 '+D.pen_updated_at : '';
       document.getElementById('okr_pen_note').textContent=
-        'HK: '+pen_hk_v.toLocaleString()+' / '+pen_hk_t.toLocaleString()+
+        (pen_hk_pct/PEN_TARGET*100).toFixed(1)+'% 达成 · HK: '+pen_hk_v.toLocaleString()+' / '+pen_hk_t.toLocaleString()+
         ' · 全量: '+pen_all_v.toLocaleString()+' / '+pen_all_t.toLocaleString()+updTxt;
     }
 
