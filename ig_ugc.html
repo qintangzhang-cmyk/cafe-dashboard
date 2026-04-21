@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LONGBRIDGE Cafe - Instagram UGC 数据看板</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #0f1117; color: #e0e0e0; }
+  .dashboard { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+  /* Template banner */
+  .template-banner { background: linear-gradient(135deg, #1e1a27 0%, #2a1f35 100%); border: 1px dashed #c084fc; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .template-banner .tb-left { display: flex; align-items: center; gap: 12px; }
+  .template-banner .tb-icon { width: 32px; height: 32px; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #fff; flex-shrink: 0; font-weight: 700; }
+  .template-banner .tb-title { color: #c084fc; font-size: 14px; font-weight: 600; }
+  .template-banner .tb-desc { color: #888; font-size: 12px; margin-top: 2px; }
+  .template-banner .tb-meta { color: #666; font-size: 12px; }
+
+  /* Header */
+  .header { text-align: center; padding: 28px 0 32px; border-bottom: 1px solid #2a2d35; margin-bottom: 32px; position: relative; }
+  .header::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 120px; height: 3px; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); border-radius: 2px; }
+  .header h1 { font-size: 28px; color: #fff; margin-bottom: 8px; }
+  .header h1 .ig-accent { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; }
+  .header .subtitle { color: #888; font-size: 14px; }
+  .header .meta-info { margin-top: 12px; color: #aaa; font-size: 13px; }
+  .header .account-handle { color: #c084fc; font-weight: 500; }
+
+  /* KPI Cards */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+  .kpi-card { background: #1a1d27; border-radius: 12px; padding: 22px; text-align: center; border: 1px solid #2a2d35; position: relative; overflow: hidden; }
+  .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .kpi-card.ig-pink::before { background: linear-gradient(90deg, #dc2743, #bc1888); }
+  .kpi-card.ig-orange::before { background: linear-gradient(90deg, #f09433, #e6683c); }
+  .kpi-card.ig-purple::before { background: linear-gradient(90deg, #8b5cf6, #c084fc); }
+  .kpi-card.ig-blue::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+  .kpi-card .label { font-size: 13px; color: #888; margin-bottom: 8px; }
+  .kpi-card .value { font-size: 32px; font-weight: 700; color: #fff; }
+  .kpi-card .value.empty { color: #3a3d45; font-weight: 300; }
+  .kpi-card .sub { font-size: 12px; color: #666; margin-top: 4px; }
+  .kpi-card .trend { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-top: 6px; }
+  .trend-up { background: #14532d; color: #4ade80; }
+  .trend-down { background: #450a0a; color: #f87171; }
+  .trend-flat { background: #2a2d35; color: #888; }
+
+  /* Section */
+  .section { margin-bottom: 28px; }
+  .section-title { font-size: 18px; font-weight: 600; color: #fff; margin-bottom: 16px; padding-left: 12px; border-left: 3px solid #c084fc; display: flex; align-items: center; gap: 10px; }
+  .section-title .st-num { background: linear-gradient(45deg, #dc2743, #bc1888); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 700; }
+  .section-title .st-hint { font-size: 12px; color: #666; font-weight: 400; margin-left: auto; padding-right: 4px; }
+
+  /* Grid layouts */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  /* Cards */
+  .card { background: #1a1d27; border-radius: 12px; padding: 22px; border: 1px solid #2a2d35; }
+  .card h3 { font-size: 15px; color: #ccc; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .card h3 .h3-sub { font-size: 12px; color: #666; font-weight: 400; }
+  .card canvas { max-height: 280px; }
+
+  /* Table */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table thead th { text-align: left; padding: 10px 12px; background: #14161e; color: #888; font-weight: 500; font-size: 12px; border-bottom: 1px solid #2a2d35; position: sticky; top: 0; }
+  .data-table tbody td { padding: 10px 12px; border-bottom: 1px solid #22252e; color: #ccc; }
+  .data-table tbody tr:hover { background: #20232c; }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table td.num { text-align: right; font-variant-numeric: tabular-nums; color: #e0e0e0; }
+  .data-table td.num-hl { color: #60a5fa; font-weight: 600; }
+  .data-table td.empty { color: #3a3d45; text-align: center; font-style: italic; }
+  .data-table th.num { text-align: right; }
+
+  /* Metric list */
+  .metric-list { display: flex; flex-direction: column; gap: 12px; }
+  .metric-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #14161e; border-radius: 8px; border: 1px solid #22252e; }
+  .metric-row .ml-label { color: #888; font-size: 13px; }
+  .metric-row .ml-value { font-size: 18px; font-weight: 600; color: #fff; }
+  .metric-row .ml-value.empty { color: #3a3d45; font-weight: 300; }
+  .metric-row .ml-sub { font-size: 11px; color: #666; margin-top: 2px; }
+
+  /* Content type tags */
+  .content-type-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .ct-item { background: #14161e; border: 1px solid #22252e; border-radius: 8px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
+  .ct-item .ct-name { font-size: 13px; color: #ccc; }
+  .ct-item .ct-count { font-size: 16px; font-weight: 600; color: #c084fc; }
+  .ct-item .ct-bar { width: 100%; height: 4px; background: #22252e; border-radius: 2px; margin-top: 8px; overflow: hidden; }
+  .ct-item .ct-bar-fill { height: 100%; background: linear-gradient(90deg, #8b5cf6, #c084fc); border-radius: 2px; }
+  .ct-item.empty .ct-count { color: #3a3d45; }
+
+  /* Hashtags */
+  .hashtag-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
+  .hashtag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 16px; font-size: 13px; background: #1e1a27; border: 1px solid #3d2d5c; color: #c084fc; }
+  .hashtag .hc { color: #888; font-size: 11px; }
+  .hashtag.empty { color: #3a3d45; border-color: #22252e; background: #14161e; }
+
+  /* Sentiment bar */
+  .sentiment-container { padding: 8px 0; }
+  .sentiment-bar { height: 24px; width: 100%; background: #14161e; border-radius: 12px; overflow: hidden; display: flex; }
+  .sentiment-positive { background: linear-gradient(90deg, #16a34a, #4ade80); }
+  .sentiment-neutral { background: linear-gradient(90deg, #525252, #737373); }
+  .sentiment-negative { background: linear-gradient(90deg, #b91c1c, #f87171); }
+  .sentiment-legend { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; }
+  .sentiment-legend .sl-item { display: flex; align-items: center; gap: 6px; color: #aaa; }
+  .sentiment-legend .sl-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .sl-dot.pos { background: #4ade80; }
+  .sl-dot.neu { background: #737373; }
+  .sl-dot.neg { background: #f87171; }
+
+  /* UGC post cards */
+  .ugc-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .ugc-card { background: #14161e; border: 1px solid #22252e; border-radius: 10px; padding: 14px; }
+  .ugc-card .ugc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .ugc-card .ugc-user { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #ccc; font-weight: 500; }
+  .ugc-card .ugc-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; }
+  .ugc-card .ugc-date { font-size: 11px; color: #666; }
+  .ugc-card .ugc-type { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; background: #1e1a27; color: #c084fc; margin-bottom: 6px; }
+  .ugc-card .ugc-text { font-size: 13px; color: #aaa; line-height: 1.6; margin-bottom: 10px; }
+  .ugc-card .ugc-metrics { display: flex; gap: 14px; font-size: 12px; color: #888; }
+  .ugc-card .ugc-metrics span { display: flex; align-items: center; gap: 4px; }
+  .ugc-card.empty { border-style: dashed; border-color: #2a2d35; }
+  .ugc-card.empty .ugc-text { color: #3a3d45; font-style: italic; text-align: center; padding: 20px 0; }
+
+  /* Footer */
+  .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #2a2d35; color: #555; font-size: 12px; text-align: center; line-height: 1.8; }
+  .footer code { background: #14161e; padding: 2px 6px; border-radius: 4px; color: #c084fc; font-size: 11px; }
+
+  /* Insight summary */
+  .summary-box { background: linear-gradient(135deg, #1a1d27 0%, #1e1a27 100%); border: 1px solid #3d2d5c; border-radius: 12px; padding: 24px; }
+  .summary-box h3 { color: #c084fc; font-size: 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .summary-box .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .summary-item { padding: 12px 0; }
+  .summary-item .si-label { font-size: 12px; color: #888; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .summary-item .si-text { font-size: 13px; color: #ccc; line-height: 1.7; }
+  .summary-item .si-text.empty { color: #3a3d45; font-style: italic; }
+
+  /* Empty value styling */
+  [data-field]:empty::before,
+  [data-field=""]:not(.filled)::before { content: '—'; color: #3a3d45; font-weight: 300; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .kpi-row, .grid-2, .grid-3, .grid-4, .content-type-grid, .ugc-list, .summary-box .summary-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── AUTH OVERLAY (same as cafe dashboard) ─────────── */
+  #auth-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: linear-gradient(135deg, #0c1520 0%, #1a2d42 100%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .auth-card {
+    background: #fff; border-radius: 16px; padding: 48px 40px;
+    width: 360px; text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,.45);
+  }
+  .auth-logo { font-size: 22px; font-weight: 800; color: #0c1520; margin-bottom: 4px; }
+  .auth-logo em { font-style: normal; color: #c8a86a; }
+  .auth-subtitle { font-size: 12px; color: #667285; margin-bottom: 32px; }
+  .auth-divider { height: 1px; background: #eee; margin: 24px 0; }
+  .auth-error { font-size: 12px; color: #b83030; margin-top: 16px; min-height: 18px; }
+  #app { display: none; }
+</style>
+</head>
+<body>
+
+<!-- AUTH OVERLAY -->
+<div id="auth-overlay">
+  <div class="auth-card">
+    <div class="auth-logo">LONGBRIDGE <em>Café</em></div>
+    <div class="auth-subtitle">Instagram UGC 数据看板 · 内部访问</div>
+    <div id="g_id_onload"
+      data-client_id="884541501389-rsulrh11bksq41k9hpfhol2cks4ue5sj.apps.googleusercontent.com"
+      data-callback="handleGoogleAuth"
+      data-auto_select="true">
+    </div>
+    <div class="g_id_signin"
+      data-type="standard"
+      data-shape="rectangular"
+      data-theme="outline"
+      data-text="signin_with"
+      data-size="large"
+      data-locale="zh_CN"
+      data-width="280">
+    </div>
+    <div id="auth-error" class="auth-error"></div>
+    <div class="auth-divider"></div>
+    <div style="font-size:11px;color:#a4aebe">仅限 @longbridge 邮箱账号访问</div>
+  </div>
+</div>
+
+<div id="app">
+<div class="dashboard">
+
+  <!-- Template banner: make it obvious this is a template -->
+  <div class="template-banner">
+    <div class="tb-left">
+      <div class="tb-icon">IG</div>
+      <div>
+        <div class="tb-title">⚠ 模板模式 · 数据待填充</div>
+        <div class="tb-desc">所有数字为占位符（—）。请通过 Meta Graph API / Business Suite 导出或人工录入后替换。</div>
+      </div>
+    </div>
+    <div class="tb-meta">
+      数据字段定义：见页面底部 <code>schema.json</code>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <h1>LONGBRIDGE Cafe <span class="ig-accent">Instagram UGC</span> 数据看板</h1>
+    <div class="subtitle">
+      统计周期：<span data-field="period_start">—</span> 至 <span data-field="period_end">—</span>
+      &nbsp;|&nbsp;
+      对比周期：<span data-field="compare_period">—</span>
+    </div>
+    <div class="meta-info">
+      账号：<span class="account-handle" data-field="ig_handle">@longbridge.cafe</span>
+      &nbsp;·&nbsp;
+      监测标签：<span data-field="tracked_hashtags">—</span>
+      &nbsp;·&nbsp;
+      位置标记：<span data-field="tracked_location">—</span>
+    </div>
+  </div>
+
+  <!-- ========== 一、核心 KPI ========== -->
+  <div class="section">
+    <div class="section-title">
+      <span class="st-num">01</span>核心 KPI 概览
+      <span class="st-hint">本期 vs 上期</span>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi-card ig-pink">
+        <div class="label">UGC 总量</div>
+        <div class="value empty" data-field="kpi_ugc_total">—</div>
+        <div class="sub">Feed + Reels + Stories</div>
+        <div class="trend trend-flat" data-field="kpi_ugc_total_trend">环比 —</div>
+      </div>
+      <div class="kpi-card ig-orange">
+        <div class="label">总曝光 Impressions</div>
+        <div class="value empty" data-field="kpi_impressions">—</div>
+        <div class="sub">含自有帖子</div>
+        <div class="trend trend-flat" data-field="kpi_impressions_trend">环比 —</div>
+      </div>
+      <div class="kpi-card ig-purple">
+        <div class="label">粉丝净增</div>
+        <div class="value empty" data-field="kpi_follower_growth">—</div>
+        <div class="sub">日均 <span data-field="kpi_follower_daily_avg">—</span></div>
+        <div class="trend trend-flat" data-field="kpi_follower_trend">环比 —</div>
+      </div>
+      <div class="kpi-card ig-blue">
+        <div class="label">互动率</div>
+        <div class="value empty" data-field="kpi_engagement_rate">—</div>
+        <div class="sub">Engagement / Reach</div>
+        <div class="trend trend-flat" data-field="kpi_engagement_rate_trend">环比 —</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 二、UGC 内容总量 ========== -->
+  <div class="section">
+    <div class="section-title">
+      <span class="st-num">02</span>UGC 内容总量
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>内容构成 <span class="h3-sub">按格式</span></h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>内容类型</th>
+              <th class="num">本期</th>
+              <th class="num">上期</th>
+              <th class="num">环比</th>
+              <th class="num">占比</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Feed 帖子</td>
+              <td class="num" data-field="content_feed_curr">—</td>
+              <td class="num" data-field="content_feed_prev">—</td>
+              <td class="num" data-field="content_feed_delta">—</td>
+              <td class="num" data-field="content_feed_pct">—</td>
+            </tr>
+            <tr>
+              <td>Reels 视频</td>
+              <td class="num" data-field="content_reels_curr">—</td>
+              <td class="num" data-field="content_reels_prev">—</td>
+              <td class="num" data-field="content_reels_delta">—</td>
+              <td class="num" data-field="content_reels_pct">—</td>
+            </tr>
+            <tr>
+              <td>Stories 限时</td>
+              <td class="num" data-field="content_stories_curr">—</td>
+              <td class="num" data-field="content_stories_prev">—</td>
+              <td class="num" data-field="content_stories_delta">—</td>
+              <td class="num" data-field="content_stories_pct">—</td>
+            </tr>
+            <tr style="font-weight:600">
+              <td>合计</td>
+              <td class="num num-hl" data-field="content_total_curr">—</td>
+              <td class="num" data-field="content_total_prev">—</td>
+              <td class="num" data-field="content_total_delta">—</td>
+              <td class="num">100%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>UGC 来源归属 <span class="h3-sub">按触发方式</span></h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>触发方式</th>
+              <th class="num">数量</th>
+              <th class="num">占比</th>
+              <th class="num">环比</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>@品牌账号提及</td>
+              <td class="num" data-field="src_mention_count">—</td>
+              <td class="num" data-field="src_mention_pct">—</td>
+              <td class="num" data-field="src_mention_delta">—</td>
+            </tr>
+            <tr>
+              <td>带品牌 Hashtag</td>
+              <td class="num" data-field="src_hashtag_count">—</td>
+              <td class="num" data-field="src_hashtag_pct">—</td>
+              <td class="num" data-field="src_hashtag_delta">—</td>
+            </tr>
+            <tr>
+              <td>位置标记 (Location)</td>
+              <td class="num" data-field="src_location_count">—</td>
+              <td class="num" data-field="src_location_pct">—</td>
+              <td class="num" data-field="src_location_delta">—</td>
+            </tr>
+            <tr>
+              <td>品牌自发 (Owned)</td>
+              <td class="num" data-field="src_owned_count">—</td>
+              <td class="num" data-field="src_owned_pct">—</td>
+              <td class="num" data-field="src_owned_delta">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 三、曝光与覆盖 ========== -->
+  <div class="section">
+    <div class="section-title">
+      <span class="st-num">03</span>曝光与覆盖
+    </div>
+    <div class="grid-3">
+      <div class="card">
+        <h3>曝光 Impressions</h3>
+        <div class="metric-list">
+          <div class="metric-row">
+            <div>
+              <div class="ml-label">总曝光量</div>
+              <div class="ml-sub">含 Feed + Reels + Stories</div>
+            </div>
+            <div class="ml-value empty" data-field="imp_total">—</div>
+          </div>
+          <div class="metric-row">
+            <div>
+              <div class="ml-label">平均单条曝光</div>
+            </div>
+            <div class="ml-value empty" data-field="imp_avg_per_post">—</div>
+          </div>
+          <div class="metric-row">
+            <div>
+              <div class="ml-label">最高曝光帖</div>
+            </div>
+            <div class="ml-value empty" data-field="imp_top_post">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>覆盖 Reach</h3>
+        <div class="metric-list">
+          <div class="metric-row">
+            <div>
+              <div class="ml-label">总覆盖人数</div>
+              <div class="ml-sub">去重后独立用户</div>
+            </div>
+            <div class="ml-value empty" data-field="reach_total">—</div>
+          </div>
+          <div class="metric-row">
+            <div>
+              <div class="ml-label">粉丝覆盖率</div>
+              <div class="ml-sub">Reach / 粉丝总数</div>
+            </div>
+            <div class="ml-value empty" data-field="reach_follower_rate">—</div>
+          </div>
+          <div class="metric-row">
+            <div>
+              <div class="ml-label">非粉丝覆盖占比</div>
+              <div class="ml-sub">破圈指标</div>
+            </div>
+            <div class="ml-value empty" data-field="reach_nonfollower_pct">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>曝光 / 覆盖 趋势</h3>
+        <canvas id="reachTrendChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 四、粉丝增长 ========== -->
+  <div class="section">
+    <div class="section-title">
+      <span class="st-num">04</span>粉丝增长
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>粉丝概况</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>指标</th>
+              <th class="num">本期</th>
+              <th class="num">上期</th>
+              <th class="num">环比</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>粉丝总数（期末）</td><td class="num" data-field="fol_total_end">—</td><td class="num" data-field="fol_total_prev">—</td><td class="num" data-field="fol_total_delta">—</td></tr>
+            <tr><td>净增粉丝</td><td class="num num-hl" data-field="fol_net_growth">—</td><td class="num" data-field="fol_net_prev">—</td><td class="num" data-field="fol_net_delta">—</td></tr>
+            <tr><td>新增粉丝</td><td class="num" data-field="fol_gained">—</td><td class="num" data-field="fol_gained_prev">—</td><td class="num" data-field="fol_gained_delta">—</td></tr>
+            <tr><td>取关数</td><td class="num" data-field="fol_lost">—</td><td class="num" data-field="fol_lost_prev">—</td><td class="num" data-field="fol_lost_delta">—</td></tr>
+            <tr><td>日均净增</td><td class="num" data-field="fol_daily_avg">—</td><td class="num" data-field="fol_daily_avg_prev">—</td><td class="num" data-field="fol_daily_avg_delta">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>粉丝来源分布 <span class="h3-sub">Follows Source</span></h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>来源</th>
+              <th class="num">数量</th>
+              <th class="num">占比</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>UGC / 被提及引流</td><td class="num" data-field="fol_src_ugc">—</td><td class="num" data-field="fol_src_ugc_pct">—</td></tr>
+            <tr><td>品牌主页 (Profile)</td><td class="num" data-field="fol_src_profile">—</td><td class="num" data-field="fol_src_profile_pct">—</td></tr>
+            <tr><td>Explore / 推荐</td><td class="num" data-field="fol_src_explore">—</td><td class="num" data-field="fol_src_explore_pct">—</td></tr>
+            <tr><td>Hashtag</td><td class="num" data-field="fol_src_hashtag">—</td><td class="num" data-field="fol_src_hashtag_pct">—</td></tr>
+            <tr><td>Location 位置页</td><td class="num" data-field="fol_src_location">—</td><td class="num" data-field="fol_src_location_pct">—</td></tr>
+            <tr><td>其他</td><td class="num" data-field="fol_src_other">—</td><td class="num" data-field="fol_src_other_pct">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 五、互动数据 ========== -->
+  <div class="section">
+    <div class="section-title">
+      <span class="st-num">05</span>互动数据
+    </div>
+    <div class="grid-4">
+      <div class="card">
+        <h3>❤ 点赞</h3>
+        <div class="metric-row" style="margin-bottom:8px">
+          <div class="ml-label">总数</div>
+          <div class="ml-value empty" data-field="eng_likes_total">—</div>
+        </div>
+        <div class="metric-row">
+          <div class="ml-label">单条均值</div>
+          <div class="ml-value empty" data-field="eng_likes_avg">—</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>💬 评论</h3>
+        <div class="metric-row" style="margin-bottom:8px">
+          <div class="ml-label">总数</div>
+          <div class="ml-value empty" data-field="eng_comments_total">—</div>
+        </div>
+        <div class="metric-row">
+          <div class="ml-label">单条均值</div>
+          <div class="ml-value empty" data-field="eng_comments_avg">—</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>↗ 分享</h3>
+        <div class="metric-row" style="margin-bottom:8px">
+          <div class="ml-label">总数</div>
+          <div class="ml-value empty" data-field="eng_shares_total">—</div>
+        </div>
+        <div class="metric-row">
+          <div class="ml-label">单条均值</div>
+          <div class="ml-value empty" data-field="eng_shares_avg">—</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>🔖 保存</h3>
+        <div class="metric-row" style="margin-bottom:8px">
+          <div class="ml-label">总数</div>
+          <div class="ml-value empty" data-field="eng_saves_total">—</div>
+        </div>
+        <div class="metric-row">
+          <div class="ml-label">单条均值</div>
+          <div class="ml-value empty" data-field="eng_saves_avg">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:16px">
+      <div class="card">
+        <h3>评论情感分布 <span class="h3-sub">LLM 语义分析</span></h3>
+        <div class="sentiment-container">
+          <div class="sentiment-bar" id="sentimentBar">
+            <div class="sentiment-positive" style="width:0%" data-field-style="sent_pos_width"></div>
+            <div class="sentiment-neutral" style="width:0%" data-field-style="sent_neu_width"></div>
+            <div class="sentiment-negative" style="width:0%" data-field-style="sent_neg_width"></div>
+          </div>
+          <div class="sentiment-legend">
+            <div class="sl-item"><span class="sl-dot pos"></span>正面 <strong data-field="sent_pos_pct">—</strong></div>
+            <div class="sl-item"><span class="sl-dot neu"></span>中性 <strong data-field="sent_neu_pct">—</strong></div>
+            <div class="sl-item"><span class="sl-dot neg"></span>负面 <strong data-field="sent_neg_pct">—</strong></div>
+          </div>
+        </div>
+        <h3 style="margin-top:20px">高频关键词</h3>
+        <div class="hashtag-cloud" id="keywordsCloud">
+          <span class="hashtag empty">待填充</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>互动率 <span class="h3-sub">Engagement Rate</span></h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>维度</th>
+              <th class="num">本期</th>
+              <th class="num">上期</th>
+              <th class="num">基准参考</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>互动率 (ER by Reach)</td><td class="num num-hl" data-field="er_by_reach">—</td><td class="num" data-field="er_by_reach_prev">—</td><td class="num" style="color:#666">餐饮均值 1.87%</td></tr>
+            <tr><td>互动率 (ER by Followers)</td><td class="num" data-field="er_by_followers">—</td><td class="num" data-field="er_by_followers_prev">—</td><td class="num" style="color:#666">餐饮均值 0.98%</td></tr>
+            <tr><td>Feed ER</td><td class="num" data-field="er_feed">—</td><td class="num" data-field="er_feed_prev">—</td><td class="num" style="color:#666">—</td></tr>
+            <tr><td>Reels ER</td><td class="num" data-field="er_reels">—</td><td class="num" data-field="er_reels_prev">—</td><td class="num" style="color:#666">—</td></tr>
+            <tr><td>保存率 Save Rate</td><td class="num" data-field="save_rate">—</td><td class="num" data-field="save_rate_prev">—</td><td class="num" style="color:#666">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 六、账号与内容质量 ========== -->
+  <div class="section">
+    <div class="section-title">
+      <span class="st-num">06</span>账号与内容质量
+    </div>
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="card">
+        <h3>UGC 发布者概览</h3>
+        <div class="metric-list">
+          <div class="metric-row">
+            <div><div class="ml-label">独立发布用户数</div></div>
+            <div class="ml-value empty" data-field="q_unique_creators">—</div>
+          </div>
+          <div class="metric-row">
+            <div><div class="ml-label">KOL / 粉丝 >10K 用户数</div></div>
+            <div class="ml-value empty" data-field="q_kol_count">—</div>
+          </div>
+          <div class="metric-row">
+            <div><div class="ml-label">回头客（历史曾发过 UGC）</div></div>
+            <div class="ml-value empty" data-field="q_repeat_creators">—</div>
+          </div>
+          <div class="metric-row">
+            <div><div class="ml-label">平均发布者粉丝量</div></div>
+            <div class="ml-value empty" data-field="q_avg_creator_followers">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>内容类型分布 <span class="h3-sub">基于图片/视频识别</span></h3>
+        <div class="content-type-grid">
+          <div class="ct-item empty">
+            <div style="flex:1">
+              <div class="ct-name">🥤 饮品</div>
+              <div class="ct-bar"><div class="ct-bar-fill" style="width:0%" data-field-style="ct_drinks_width"></div></div>
+            </div>
+            <div class="ct-count" data-field="ct_drinks">—</div>
+          </div>
+          <div class="ct-item empty">
+            <div style="flex:1">
+              <div class="ct-name">🍰 甜品 / 烘焙</div>
+              <div class="ct-bar"><div class="ct-bar-fill" style="width:0%" data-field-style="ct_desserts_width"></div></div>
+            </div>
+            <div class="ct-count" data-field="ct_desserts">—</div>
+          </div>
+          <div class="ct-item empty">
+            <div style="flex:1">
+              <div class="ct-name">🏠 环境 / 店铺</div>
+              <div class="ct-bar"><div class="ct-bar-fill" style="width:0%" data-field-style="ct_interior_width"></div></div>
+            </div>
+            <div class="ct-count" data-field="ct_interior">—</div>
+          </div>
+          <div class="ct-item empty">
+            <div style="flex:1">
+              <div class="ct-name">👥 人物 / 自拍</div>
+              <div class="ct-bar"><div class="ct-bar-fill" style="width:0%" data-field-style="ct_people_width"></div></div>
+            </div>
+            <div class="ct-count" data-field="ct_people">—</div>
+          </div>
+          <div class="ct-item empty">
+            <div style="flex:1">
+              <div class="ct-name">🎉 活动 / 快闪</div>
+              <div class="ct-bar"><div class="ct-bar-fill" style="width:0%" data-field-style="ct_event_width"></div></div>
+            </div>
+            <div class="ct-count" data-field="ct_event">—</div>
+          </div>
+          <div class="ct-item empty">
+            <div style="flex:1">
+              <div class="ct-name">🎨 其他</div>
+              <div class="ct-bar"><div class="ct-bar-fill" style="width:0%" data-field-style="ct_other_width"></div></div>
+            </div>
+            <div class="ct-count" data-field="ct_other">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <h3>热门 Hashtag 云 <span class="h3-sub">按使用次数排序</span></h3>
+      <div class="hashtag-cloud" id="hashtagCloud">
+        <span class="hashtag empty">#longbridgecafe <span class="hc">—</span></span>
+        <span class="hashtag empty">#尖沙咀咖啡 <span class="hc">—</span></span>
+        <span class="hashtag empty">（待填充）<span class="hc">—</span></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>头部优质 UGC Top 10 <span class="h3-sub">按互动量降序</span></h3>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width:40px">#</th>
+            <th>用户</th>
+            <th>类型</th>
+            <th>内容摘要</th>
+            <th class="num">❤</th>
+            <th class="num">💬</th>
+            <th class="num">🔖</th>
+            <th class="num">Reach</th>
+            <th class="num">ER%</th>
+            <th>日期</th>
+          </tr>
+        </thead>
+        <tbody id="topUgcTable">
+          <tr><td>1</td><td class="empty" colspan="9">— 待填充 —</td></tr>
+          <tr><td>2</td><td class="empty" colspan="9">— 待填充 —</td></tr>
+          <tr><td>3</td><td class="empty" colspan="9">— 待填充 —</td></tr>
+          <tr><td>4</td><td class="empty" colspan="9">— 待填充 —</td></tr>
+          <tr><td>5</td><td class="empty" colspan="9">— 待填充 —</td></tr>
+          <tr><td>6</td><td class="empty" colspan="9">— 待填充 —</td></tr>
+          <tr><td>7</td><td class="empty" colspan="9">— 待填充 —</td></tr>
+          <tr><td>8</td><td class="empty" colspan="9">— 待填充 —</td></tr>
+          <tr><td>9</td><td class="empty" colspan="9">— 待填充 —</td></tr>
+          <tr><td>10</td><td class="empty" colspan="9">— 待填充 —</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ========== 七、时间维度 ========== -->
+  <div class="section">
+    <div class="section-title">
+      <span class="st-num">07</span>时间维度趋势
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>UGC 数量趋势 <span class="h3-sub">按日</span></h3>
+        <canvas id="dailyTrendChart"></canvas>
+      </div>
+      <div class="card">
+        <h3>互动量趋势 <span class="h3-sub">按日</span></h3>
+        <canvas id="engagementTrendChart"></canvas>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:16px">
+      <div class="card">
+        <h3>互动高峰时段 <span class="h3-sub">一周热力分布</span></h3>
+        <canvas id="heatmapChart"></canvas>
+      </div>
+      <div class="card">
+        <h3>本期 vs 上期对比</h3>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>指标</th>
+              <th class="num">本期</th>
+              <th class="num">上期</th>
+              <th class="num">环比</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>UGC 数量</td><td class="num" data-field="cmp_ugc_curr">—</td><td class="num" data-field="cmp_ugc_prev">—</td><td class="num" data-field="cmp_ugc_delta">—</td></tr>
+            <tr><td>曝光量</td><td class="num" data-field="cmp_imp_curr">—</td><td class="num" data-field="cmp_imp_prev">—</td><td class="num" data-field="cmp_imp_delta">—</td></tr>
+            <tr><td>覆盖人数</td><td class="num" data-field="cmp_reach_curr">—</td><td class="num" data-field="cmp_reach_prev">—</td><td class="num" data-field="cmp_reach_delta">—</td></tr>
+            <tr><td>互动总数</td><td class="num" data-field="cmp_eng_curr">—</td><td class="num" data-field="cmp_eng_prev">—</td><td class="num" data-field="cmp_eng_delta">—</td></tr>
+            <tr><td>粉丝净增</td><td class="num" data-field="cmp_fol_curr">—</td><td class="num" data-field="cmp_fol_prev">—</td><td class="num" data-field="cmp_fol_delta">—</td></tr>
+            <tr><td>互动率</td><td class="num" data-field="cmp_er_curr">—</td><td class="num" data-field="cmp_er_prev">—</td><td class="num" data-field="cmp_er_delta">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 八、总结与建议 ========== -->
+  <div class="section">
+    <div class="section-title">
+      <span class="st-num">08</span>总结与建议
+    </div>
+    <div class="summary-box">
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="si-label">UGC 表现</div>
+          <div class="si-text empty" data-field="summary_ugc_performance">— 待分析 —</div>
+        </div>
+        <div class="summary-item">
+          <div class="si-label">引流效果</div>
+          <div class="si-text empty" data-field="summary_traffic_impact">— 待分析 —</div>
+        </div>
+        <div class="summary-item">
+          <div class="si-label">互动质量</div>
+          <div class="si-text empty" data-field="summary_engagement_quality">— 待分析 —</div>
+        </div>
+        <div class="summary-item">
+          <div class="si-label">改进建议</div>
+          <div class="si-text empty" data-field="summary_recommendations">— 待分析 —</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer / Schema reference -->
+  <div class="footer">
+    <div style="margin-bottom:12px">
+      LONGBRIDGE Cafe Instagram UGC Dashboard · Template v1
+      &nbsp;|&nbsp;
+      生成时间：<span data-field="generated_at">—</span>
+    </div>
+    <div style="color:#666">
+      填充方式：Meta Graph API (推荐) / Business Suite 导出 / 人工录入<br>
+      数据字段定义见下方 <code>&lt;script type="application/json" id="schema"&gt;</code>
+    </div>
+  </div>
+
+</div>
+</div><!-- /#app -->
+
+<!-- ============================================================
+     数据 Schema · 供填充脚本参考（不显示）
+     All `data-field="..."` selectors below map to JSON keys here.
+     ============================================================ -->
+<script type="application/json" id="schema">
+{
+  "period": {
+    "period_start": "YYYY-MM-DD",
+    "period_end": "YYYY-MM-DD",
+    "compare_period": "YYYY-MM-DD ~ YYYY-MM-DD",
+    "generated_at": "ISO 8601"
+  },
+  "account": {
+    "ig_handle": "@longbridge.cafe",
+    "tracked_hashtags": ["#longbridgecafe", "..."],
+    "tracked_location": "Longbridge Cafe (Nathan Rd)"
+  },
+  "kpi": {
+    "kpi_ugc_total": "int",
+    "kpi_ugc_total_trend": "+X% or -X%",
+    "kpi_impressions": "int",
+    "kpi_impressions_trend": "±X%",
+    "kpi_follower_growth": "int",
+    "kpi_follower_daily_avg": "float",
+    "kpi_follower_trend": "±X%",
+    "kpi_engagement_rate": "X.XX%",
+    "kpi_engagement_rate_trend": "±X pp"
+  },
+  "content_breakdown": {
+    "feed":   { "curr": "int", "prev": "int", "delta": "±%", "pct": "X%" },
+    "reels":  { "curr": "int", "prev": "int", "delta": "±%", "pct": "X%" },
+    "stories":{ "curr": "int", "prev": "int", "delta": "±%", "pct": "X%" },
+    "total":  { "curr": "int", "prev": "int", "delta": "±%" }
+  },
+  "sources": {
+    "mention":  { "count": "int", "pct": "X%", "delta": "±%" },
+    "hashtag":  { "count": "int", "pct": "X%", "delta": "±%" },
+    "location": { "count": "int", "pct": "X%", "delta": "±%" },
+    "owned":    { "count": "int", "pct": "X%", "delta": "±%" }
+  },
+  "reach": {
+    "imp_total": "int", "imp_avg_per_post": "int", "imp_top_post": "int",
+    "reach_total": "int", "reach_follower_rate": "X%", "reach_nonfollower_pct": "X%",
+    "daily_series": [{"date":"YYYY-MM-DD","impressions":0,"reach":0}]
+  },
+  "followers": {
+    "fol_total_end": "int", "fol_net_growth": "int", "fol_gained": "int",
+    "fol_lost": "int", "fol_daily_avg": "float",
+    "sources": { "ugc":"int","profile":"int","explore":"int","hashtag":"int","location":"int","other":"int" }
+  },
+  "engagement": {
+    "likes":    { "total":"int", "avg":"float" },
+    "comments": { "total":"int", "avg":"float" },
+    "shares":   { "total":"int", "avg":"float" },
+    "saves":    { "total":"int", "avg":"float" },
+    "sentiment": { "positive":"X%","neutral":"X%","negative":"X%" },
+    "keywords": [{"word":"string","count":"int","sentiment":"pos|neu|neg"}],
+    "rates": { "er_by_reach":"X%","er_by_followers":"X%","er_feed":"X%","er_reels":"X%","save_rate":"X%" }
+  },
+  "quality": {
+    "unique_creators":"int", "kol_count":"int", "repeat_creators":"int", "avg_creator_followers":"int",
+    "content_types": { "drinks":"int","desserts":"int","interior":"int","people":"int","event":"int","other":"int" },
+    "top_hashtags":  [{"tag":"string","count":"int"}],
+    "top_ugc":       [{"rank":1,"user":"@...","type":"Reel/Feed/Story","summary":"...","likes":0,"comments":0,"saves":0,"reach":0,"er":"X%","date":"YYYY-MM-DD","url":"..."}]
+  },
+  "time": {
+    "daily_ugc":        [{"date":"YYYY-MM-DD","count":0}],
+    "daily_engagement": [{"date":"YYYY-MM-DD","total":0}],
+    "heatmap":          [{"dow":0,"hour":0,"engagement":0}],
+    "compare": {
+      "ugc":        {"curr":"int","prev":"int","delta":"±%"},
+      "impressions":{"curr":"int","prev":"int","delta":"±%"},
+      "reach":      {"curr":"int","prev":"int","delta":"±%"},
+      "engagement": {"curr":"int","prev":"int","delta":"±%"},
+      "followers":  {"curr":"int","prev":"int","delta":"±%"},
+      "er":         {"curr":"X%","prev":"X%","delta":"±pp"}
+    }
+  },
+  "summary": {
+    "summary_ugc_performance":     "文本",
+    "summary_traffic_impact":      "文本",
+    "summary_engagement_quality":  "文本",
+    "summary_recommendations":     "文本"
+  }
+}
+</script>
+
+<script>
+// ===== 空状态占位的 Chart.js 骨架 =====
+// 待数据填入时，替换 labels / datasets 即可。
+const emptyChartOpts = {
+  responsive: true,
+  plugins: {
+    legend: { labels: { color: '#aaa', font: { size: 11 } } },
+    tooltip: { enabled: true }
+  },
+  scales: {
+    x: { ticks: { color: '#888' }, grid: { color: '#22252e' } },
+    y: { ticks: { color: '#888' }, grid: { color: '#22252e' }, beginAtZero: true }
+  }
+};
+
+// 占位数据：全零 + "待填充" 标签
+const placeholderLabels = ['待', '填', '充', '中', '…', '', ''];
+const placeholderZeros = [0,0,0,0,0,0,0];
+
+// Reach / Impressions trend
+new Chart(document.getElementById('reachTrendChart'), {
+  type: 'line',
+  data: {
+    labels: placeholderLabels,
+    datasets: [
+      { label: 'Impressions', data: placeholderZeros, borderColor: '#fb923c', backgroundColor: 'rgba(251,146,60,0.1)', tension: 0.3 },
+      { label: 'Reach',       data: placeholderZeros, borderColor: '#c084fc', backgroundColor: 'rgba(192,132,252,0.1)', tension: 0.3 }
+    ]
+  },
+  options: emptyChartOpts
+});
+
+// Daily UGC count
+new Chart(document.getElementById('dailyTrendChart'), {
+  type: 'bar',
+  data: {
+    labels: placeholderLabels,
+    datasets: [{ label: 'UGC 数量', data: placeholderZeros, backgroundColor: 'rgba(220,39,67,0.6)', borderColor: '#dc2743', borderWidth: 1 }]
+  },
+  options: emptyChartOpts
+});
+
+// Engagement trend
+new Chart(document.getElementById('engagementTrendChart'), {
+  type: 'line',
+  data: {
+    labels: placeholderLabels,
+    datasets: [
+      { label: '点赞', data: placeholderZeros, borderColor: '#f87171', tension: 0.3 },
+      { label: '评论', data: placeholderZeros, borderColor: '#60a5fa', tension: 0.3 },
+      { label: '保存', data: placeholderZeros, borderColor: '#4ade80', tension: 0.3 }
+    ]
+  },
+  options: emptyChartOpts
+});
+
+// Heatmap (as scatter with sizing)
+new Chart(document.getElementById('heatmapChart'), {
+  type: 'bar',
+  data: {
+    labels: ['周一','周二','周三','周四','周五','周六','周日'],
+    datasets: [{ label: '日均互动量', data: [0,0,0,0,0,0,0], backgroundColor: 'rgba(192,132,252,0.5)', borderColor: '#c084fc', borderWidth: 1 }]
+  },
+  options: emptyChartOpts
+});
+</script>
+
+<!-- ── OAUTH HANDLER (same as cafe dashboard) ─────────── -->
+<script>
+(function(){
+  const ALLOWED = ["longbridge-inc.com", "longbridge.com", "longbridge.sg", "longbridge.hk"];
+  const STORAGE_KEY = 'cafe_auth_v1';
+  const TTL_MS = 86400000;
+
+  function showApp() {
+    document.getElementById('auth-overlay').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  }
+
+  function parseJwt(token) {
+    try {
+      return JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+    } catch(e) { return null; }
+  }
+
+  window.handleGoogleAuth = function(response) {
+    const payload = parseJwt(response.credential);
+    if (!payload) { document.getElementById('auth-error').textContent = '验证失败，请重试。'; return; }
+    const email = (payload.email || '').toLowerCase();
+    const domain = email.split('@')[1] || '';
+    if (ALLOWED.includes(domain)) {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ email, ts: Date.now() }));
+      showApp();
+    } else {
+      document.getElementById('auth-error').textContent = email + ' 无访问权限，请使用 @longbridge 邮箱。';
+    }
+  };
+
+  // Check existing session (shared with index.html via same STORAGE_KEY)
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null');
+    if (saved && (Date.now() - saved.ts) < TTL_MS) { showApp(); return; }
+  } catch(e) {}
+})();
+</script>
+</body>
+</html>
